@@ -1,0 +1,92 @@
+---
+import { getCollection, render } from 'astro:content';
+import Book from '../layouts/Book.astro';
+import RunningHead from '../components/RunningHead.astro';
+import TurnTheLeaf from '../components/TurnTheLeaf.astro';
+
+const all = (await getCollection('gedanken')).sort((a, b) => a.data.number - b.data.number);
+
+// Verse is set from its plain text, line by line, so that it can be numbered as in a critical edition.
+const verses = all
+  .filter((g) => g.data.kind === 'verse')
+  .map((g) => {
+    let line = 0;
+    const stanzas = (g.body ?? '')
+      .trim()
+      .split(/\n\s*\n/)
+      .map((stanza) => stanza.split('\n').map((text) => ({ text: text.trim(), n: ++line })));
+    return { entry: g, stanzas };
+  });
+
+const aphorisms = await Promise.all(
+  all.filter((g) => g.data.kind === 'aphorism').map(async (g) => ({ entry: g, Content: (await render(g)).Content })),
+);
+const critiques = await Promise.all(
+  all.filter((g) => g.data.kind === 'critique').map(async (g) => ({ entry: g, Content: (await render(g)).Content })),
+);
+---
+<Book
+  title="Book IV: Gedanken"
+  description="The verses, aphorisms and critiques of Fadhil Mauladhani. Die Gedanken sind frei: thoughts are free."
+  section="gedanken"
+>
+  <article class="leaf" aria-labelledby="gedanken-title">
+    <RunningHead right="Book IV · Gedanken" />
+    <div class="text">
+      <header class="opening">
+        <p class="book-label">Book the Fourth</p>
+        <h1 id="gedanken-title" lang="de">Gedanken</h1>
+        <p class="subtitle">Free Thoughts</p>
+      </header>
+      <blockquote class="epigraph">
+        <p lang="de">“Die Gedanken sind frei, wer kann sie erraten?”</p>
+        <footer>German folk song</footer>
+      </blockquote>
+
+      <section id="verses" aria-labelledby="verses-title">
+        <h2 class="part-title" id="verses-title"><span class="n">I.</span>Verses</h2>
+        {verses.length === 0 ? (
+          <p class="empty-state">The first leaves of verse are still at the printer.</p>
+        ) : verses.map(({ entry, stanzas }) => (
+          <div class="verse" lang={entry.data.lang}>
+            {entry.data.title && <h3>{entry.data.title}</h3>}
+            <div class="verse-body">
+              {stanzas.map((stanza) => (
+                <p class="stanza">
+                  {stanza.map((l) => <span class={l.n % 5 === 0 ? 'line numbered' : 'line'}>{l.text}</span>)}
+                </p>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section id="aphorisms" aria-labelledby="aphorisms-title">
+        <h2 class="part-title" id="aphorisms-title"><span class="n">II.</span>Aphorisms</h2>
+        {aphorisms.length === 0 ? (
+          <p class="empty-state">The aphorisms are being numbered and will follow.</p>
+        ) : (
+          <ol class="aphorisms">
+            {aphorisms.map(({ entry, Content }) => (
+              <li lang={entry.data.lang}><span class="n">§ {entry.data.number}</span><div class="body"><Content /></div></li>
+            ))}
+          </ol>
+        )}
+      </section>
+
+      <section id="critiques" aria-labelledby="critiques-title">
+        <h2 class="part-title" id="critiques-title"><span class="n">III.</span>Critiques</h2>
+        {critiques.length === 0 ? (
+          <p class="empty-state">The critiques are still in manuscript.</p>
+        ) : critiques.map(({ entry, Content }) => (
+          <div class="critique prose" lang={entry.data.lang}>
+            {entry.data.title && <h3>{entry.data.title}</h3>}
+            <Content />
+          </div>
+        ))}
+      </section>
+
+      <TurnTheLeaf prev={{ path: '/knowledge/', label: 'Book III' }} next={{ path: '/honours/', label: 'Honours & Laurels' }} />
+    </div>
+  </article>
+</Book>

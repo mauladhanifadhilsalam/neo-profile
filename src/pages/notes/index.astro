@@ -1,0 +1,42 @@
+---
+import Book from '../../layouts/Book.astro';
+import RunningHead from '../../components/RunningHead.astro';
+import TurnTheLeaf from '../../components/TurnTheLeaf.astro';
+import { getNotes, notePath, isPublished } from '../../lib/collections';
+import { href, toRoman } from '../../lib/book';
+
+const notes = await getNotes();
+const lastChapter = '/chronicle/vi-present-volume/';
+const firstPublished = notes.filter(isPublished)[0];
+---
+<Book
+  title="Book II: Notes"
+  description="Case studies by Fadhil Mauladhani, written as essays: a school ledger put on a queue, an Express.js back end rebuilt in NestJS, and more in press."
+  section="notes"
+>
+  <section class="leaf" aria-labelledby="notes-title">
+    <RunningHead right="Book II · Notes" />
+    <div class="contents-head">
+      <p class="book-label">Book the Second</p>
+      <h1 id="notes-title" class="book-title">Notes</h1>
+      <p>A few pieces of the work, looked at closely: what the problem was, what was built, and what it taught.</p>
+      <p class="fleuron" aria-hidden="true">❧</p>
+    </div>
+    <ol class="toc">
+      {notes.map((n) => isPublished(n) ? (
+        <li>
+          <a class="toc-row" href={href(notePath(n))}><span class="toc-n">{toRoman(n.data.number)}.</span><span class="toc-t">{n.data.title}{n.data.subtitle && <>; <i>{n.data.subtitle}</i></>}</span><span class="leader" aria-hidden="true"></span><span class="toc-r">{n.data.house}</span></a>
+          <p class="toc-gloss">{n.data.description}</p>
+        </li>
+      ) : (
+        <li>
+          <div class="toc-row pending"><span class="toc-n">{toRoman(n.data.number)}.</span><span class="toc-t">{n.data.title}{n.data.subtitle && <>; <i>{n.data.subtitle}</i></>}</span><span class="leader" aria-hidden="true"></span><span class="toc-r">in press</span></div>
+          <p class="toc-gloss">{n.data.description}</p>
+        </li>
+      ))}
+    </ol>
+    <div class="text">
+      <TurnTheLeaf prev={{ path: lastChapter, label: 'Chapter VI' }} next={{ path: notePath(firstPublished), label: `Note ${toRoman(firstPublished.data.number)}` }} />
+    </div>
+  </section>
+</Book>

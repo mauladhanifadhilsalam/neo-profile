@@ -1,0 +1,133 @@
+---
+import { getCollection } from 'astro:content';
+import Book from '../layouts/Book.astro';
+import Emblem from '../components/Emblem.astro';
+import RunningHead from '../components/RunningHead.astro';
+import { getChronicle, getNotes, chapterPath, notePath, isPublished } from '../lib/collections';
+import { href, toRoman, toWords } from '../lib/book';
+import { profile } from '../data/profile';
+
+const chapters = await getChronicle();
+const notes = await getNotes();
+const gedanken = await getCollection('gedanken');
+
+const parts = [
+  { n: 'I.', title: 'Verses', kind: 'verse', unit: ['poem', 'poems'] },
+  { n: 'II.', title: 'Aphorisms', kind: 'aphorism', unit: ['aphorism', 'aphorisms'] },
+  { n: 'III.', title: 'Critiques', kind: 'critique', unit: ['critique', 'critiques'] },
+].map((part) => {
+  const count = gedanken.filter((g) => g.data.kind === part.kind).length;
+  return { ...part, right: count === 0 ? 'in preparation' : `${toWords(count)} ${part.unit[count === 1 ? 0 : 1]}` };
+});
+
+const siteUrl = new URL(href('/'), Astro.site).toString();
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: profile.name,
+  alternateName: profile.fullName,
+  jobTitle: profile.experience[0].role,
+  description: profile.summary,
+  url: siteUrl,
+  email: `mailto:${profile.email}`,
+  sameAs: [profile.links.linkedin],
+  worksFor: { '@type': 'Organization', name: profile.experience[0].organisation },
+  address: { '@type': 'PostalAddress', addressLocality: 'Bogor', addressRegion: 'West Java', addressCountry: 'ID' },
+  alumniOf: profile.education.map((e) => ({ '@type': 'EducationalOrganization', name: e.institution })),
+  knowsLanguage: ['en', 'id', 'su'],
+  knowsAbout: ['Back-end engineering', 'Laravel', 'NestJS', 'Node.js', 'PostgreSQL', 'Microservices', 'Computer vision', 'Multi-agent systems'],
+};
+---
+<Book
+  description={`${profile.name}, ${profile.plainTitle.toLowerCase()} in Bogor, Indonesia. A portfolio bound as a book: Laravel, NestJS and PostgreSQL work for education and Sharia-compliant insurance, with notes, verses and free thoughts.`}
+  section="title"
+  jsonLd={jsonLd}
+>
+  <section class="leaf" id="title" aria-labelledby="book-title">
+    <div class="ribbon" aria-hidden="true"></div>
+    <div class="title-page">
+      <p class="fleuron settle" aria-hidden="true">❦</p>
+      <h1 id="book-title" class="settle d1">
+        <span class="t-big">Notes</span>
+        <span class="t-small">from the</span>
+        <span class="t-big">Back End</span>
+      </h1>
+      <div class="rule-double" aria-hidden="true"></div>
+      <p class="being settle d2">Being the Works, Studies &amp; Free Thoughts of</p>
+      <p class="author settle d2">{profile.name}<span class="author-full">{profile.fullName}</span></p>
+      <p class="tagline settle d3">a fellow <span lang="la">socii malorum</span> and cognitariat, tech-savvy literary romanticist</p>
+      <p class="visually-hidden">{profile.plainTitle} in Bogor, West Java, Indonesia.</p>
+      <div class="rule-thin" aria-hidden="true"></div>
+      <Emblem class="emblem settle d3" />
+      <div class="motto settle d4">
+        <p class="motto-de" lang="de">{profile.motto.de[0]}<br />{profile.motto.de[1]}</p>
+        <p class="motto-en">{profile.motto.en}</p>
+      </div>
+      <div class="rule-double" aria-hidden="true"></div>
+      <p class="imprint">Bogor, in the Province of West Java<br />Printed in the Year <span lang="la">{toRoman(new Date().getFullYear())}</span></p>
+      <p class="begin"><a href={href('/preface/')}>Begin reading: To the Reader</a></p>
+      <p class="resume" id="resume" hidden>Your ribbon rests at <a id="resume-link" href={href('/')}>the Contents</a>.</p>
+    </div>
+  </section>
+
+  <section class="leaf" id="contents" aria-labelledby="contents-h">
+    <RunningHead right="Contents" />
+    <div class="contents-head">
+      <h2 id="contents-h">Contents</h2>
+      <p class="fleuron" aria-hidden="true">❧</p>
+    </div>
+
+    <ol class="toc">
+      <li>
+        <ol class="toc-plain">
+          <li><a class="toc-row" href={href('/preface/')}><span class="toc-t">To the Reader</span><span class="leader" aria-hidden="true"></span><span class="toc-r">a preface</span></a></li>
+        </ol>
+      </li>
+
+      <li>
+        <p class="toc-book-title"><a href={href('/chronicle/')}><span class="sc">Book I</span> <span>The Chronicle</span></a></p>
+        <ol class="toc-sub">
+          {chapters.map((c) => (
+            <li><a class="toc-row" href={href(chapterPath(c))}><span class="toc-n">{toRoman(c.data.number)}.</span><span class="toc-t">{c.data.title}</span><span class="leader" aria-hidden="true"></span><span class="toc-r">{c.data.years}</span></a></li>
+          ))}
+        </ol>
+      </li>
+
+      <li>
+        <p class="toc-book-title"><a href={href('/notes/')}><span class="sc">Book II</span> <span>Notes</span></a></p>
+        <ol class="toc-sub">
+          {notes.map((n) => isPublished(n) ? (
+            <li><a class="toc-row" href={href(notePath(n))}><span class="toc-n">{toRoman(n.data.number)}.</span><span class="toc-t">{n.data.title}</span><span class="leader" aria-hidden="true"></span><span class="toc-r">{n.data.house}</span></a></li>
+          ) : (
+            <li class="toc-row pending"><span class="toc-n">{toRoman(n.data.number)}.</span><span class="toc-t">{n.data.title}</span><span class="leader" aria-hidden="true"></span><span class="toc-r">in press</span></li>
+          ))}
+        </ol>
+      </li>
+
+      <li>
+        <p class="toc-book-title"><a href={href('/knowledge/')}><span class="sc">Book III</span> <span>The Tree of Knowledge</span></a></p>
+        <ol class="toc-sub">
+          <li><a class="toc-row" href={href('/knowledge/')}><span class="toc-n"></span><span class="toc-t">Memory, Reason, Imagination &amp; the Mechanical Arts</span><span class="leader" aria-hidden="true"></span><span class="toc-r">{toWords(profile.knowledge.length)} branches</span></a></li>
+        </ol>
+      </li>
+
+      <li>
+        <p class="toc-book-title"><a href={href('/gedanken/')}><span class="sc">Book IV</span> <span lang="de">Gedanken</span></a></p>
+        <ol class="toc-sub">
+          {parts.map((p) => (
+            <li><a class="toc-row" href={href(`/gedanken/#${p.kind}s`)}><span class="toc-n">{p.n}</span><span class="toc-t">{p.title}</span><span class="leader" aria-hidden="true"></span><span class="toc-r">{p.right}</span></a></li>
+          ))}
+        </ol>
+      </li>
+
+      <li>
+        <ol class="toc-plain">
+          <li><a class="toc-row" href={href('/honours/')}><span class="toc-t">Honours &amp; Laurels</span><span class="leader" aria-hidden="true"></span><span class="toc-r">{toWords(profile.honours.length)} honours, {toWords(profile.certificates.length)} certificates</span></a></li>
+          <li><a class="toc-row" href={href('/correspondence/')}><span class="toc-t">Correspondence</span><span class="leader" aria-hidden="true"></span><span class="toc-r">by letter</span></a></li>
+          <li><a class="toc-row" href={href('/colophon/')}><span class="toc-t">Colophon</span><span class="leader" aria-hidden="true"></span><span class="toc-r">of the making of this book</span></a></li>
+          <li><a class="toc-row" href={href('/abridgement/')}><span class="toc-t">The Abridgement</span><span class="leader" aria-hidden="true"></span><span class="toc-r">one leaf, for the reader in haste</span></a></li>
+        </ol>
+      </li>
+    </ol>
+  </section>
+</Book>

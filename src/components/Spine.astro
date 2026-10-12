@@ -1,0 +1,40 @@
+---
+import { href } from '../lib/book';
+
+export type Section = 'title' | 'preface' | 'chronicle' | 'notes' | 'knowledge' | 'gedanken' | 'honours' | 'correspondence' | 'colophon' | 'abridgement' | 'errata';
+
+interface Props {
+  section: Section;
+}
+const { section } = Astro.props;
+
+const items: { key: Section; label: string; path: string }[] = [
+  { key: 'title', label: 'Contents', path: '/#contents' },
+  { key: 'chronicle', label: 'Chronicle', path: '/chronicle/' },
+  { key: 'notes', label: 'Notes', path: '/notes/' },
+  { key: 'knowledge', label: 'Knowledge', path: '/knowledge/' },
+  { key: 'gedanken', label: 'Gedanken', path: '/gedanken/' },
+  { key: 'correspondence', label: 'Correspondence', path: '/correspondence/' },
+];
+---
+<header class="spine">
+  <div class="spine-inner">
+    <a class="spine-title" href={href('/')}>Notes from the Back End</a>
+    <nav aria-label="Book">
+      <ul>
+        {items.map((item) => (
+          <li><a href={href(item.path)} aria-current={item.key === section && item.key !== 'title' ? 'page' : undefined} lang={item.key === 'gedanken' ? 'de' : undefined}>{item.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+    <button class="lamp" id="lamp" type="button" aria-pressed="false">
+      <svg viewBox="0 0 16 24" aria-hidden="true">
+        <path class="smoke" d="M8,7 C6,5 10,4 8,1.5"></path>
+        <path class="flame" d="M8,1.5 C10.5,5 10.5,8 8,9 C5.5,8 5.5,5 8,1.5 Z"></path>
+        <line class="wick" x1="8" y1="8.5" x2="8" y2="10.5"></line>
+        <rect class="candle" x="4.5" y="10.5" width="7" height="12" rx=".6"></rect>
+      </svg>
+      <span id="lamp-label">Light the lamp</span>
+    </button>
+  </div>
+</header>

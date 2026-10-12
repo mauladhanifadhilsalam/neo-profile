@@ -1,0 +1,22 @@
+---
+// Shared SVG definitions: engraving hatches, the plate arrowhead and the emblem's star.
+---
+<svg class="defs" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="hatch" width="3.2" height="3.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line class="hatch-line" x1="0" y1="0" x2="0" y2="3.2"></line>
+    </pattern>
+    <pattern id="hatch-cross" width="3.6" height="3.6" patternUnits="userSpaceOnUse" patternTransform="rotate(28)">
+      <path class="hatch-line" d="M0,0 V3.6 M0,0 H3.6"></path>
+    </pattern>
+    <pattern id="hatch-plate" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line class="hatch-line-light" x1="0" y1="0" x2="0" y2="5"></line>
+    </pattern>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="p-head" d="M0,1 L10,5 L0,9 L3,5 Z"></path>
+    </marker>
+    <symbol id="star" viewBox="-4 -4 8 8">
+      <path d="M0,-4 L.8,-.8 L4,0 L.8,.8 L0,4 L-.8,.8 L-4,0 L-.8,-.8 Z"></path>
+    </symbol>
+  </defs>
+</svg>

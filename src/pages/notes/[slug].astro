@@ -1,0 +1,64 @@
+---
+import { render } from 'astro:content';
+import Book from '../../layouts/Book.astro';
+import RunningHead from '../../components/RunningHead.astro';
+import Epigraph from '../../components/Epigraph.astro';
+import Sidenote from '../../components/Sidenote.astro';
+import TurnTheLeaf from '../../components/TurnTheLeaf.astro';
+import { getNotes, isPublished, notePath, noteSlug, type Note } from '../../lib/collections';
+import { readingPhrase, toRoman } from '../../lib/book';
+
+export async function getStaticPaths() {
+  const published = (await getNotes()).filter(isPublished);
+  return published.map((entry, i) => ({
+    params: { slug: noteSlug(entry) },
+    props: { entry, prev: published[i - 1], next: published[i + 1] },
+  }));
+}
+
+interface Props {
+  entry: Note;
+  prev?: Note;
+  next?: Note;
+}
+const { entry, prev, next } = Astro.props;
+const { Content } = await render(entry);
+const roman = toRoman(entry.data.number);
+const { epigraph, argument, subtitle } = entry.data;
+---
+<Book
+  title={`Note ${roman}: ${entry.data.title}`}
+  description={entry.data.description}
+  section="notes"
+  ribbon={`Note ${roman}, ${entry.data.title}`}
+>
+  <article class="leaf has-notes" aria-labelledby="note-title">
+    <RunningHead right="Book II · Notes" />
+    <div class="text">
+      <header class="opening">
+        <p class="book-label">Book the Second · Notes</p>
+        <p class="chapter-num">Note {roman}</p>
+        <h1 id="note-title">{entry.data.title}</h1>
+        {subtitle && <p class="subtitle">{subtitle}</p>}
+        <p class="reading">{readingPhrase(entry.body ?? '')}</p>
+      </header>
+
+      {epigraph && (
+        <Epigraph text={epigraph.text} by={epigraph.by} work={epigraph.work} adapted={epigraph.adapted}>
+          {epigraph.original && <Sidenote n="*">{epigraph.original}</Sidenote>}
+        </Epigraph>
+      )}
+
+      {argument && <p class="argument"><span class="sc">The Argument</span>{argument}</p>}
+
+      <div class="prose">
+        <Content />
+      </div>
+
+      <TurnTheLeaf
+        prev={prev ? { path: notePath(prev), label: `Note ${toRoman(prev.data.number)}` } : { path: '/notes/', label: 'Book II' }}
+        next={next ? { path: notePath(next), label: `Note ${toRoman(next.data.number)}` } : { path: '/knowledge/', label: 'Book III, The Tree of Knowledge' }}
+      />
+    </div>
+  </article>
+</Book>

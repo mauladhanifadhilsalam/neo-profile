@@ -1,0 +1,15 @@
+---
+import Book from '../layouts/Book.astro';
+import { href } from '../lib/book';
+---
+<Book title="Errata" description="This leaf appears to be missing from the volume." section="errata" noindex>
+  <section class="leaf" aria-labelledby="errata-title">
+    <div class="errata">
+      <p class="fleuron" aria-hidden="true">❦</p>
+      <h1 id="errata-title">Errata</h1>
+      <p class="ru" lang="ru">«Рукописи не горят.»</p>
+      <p>Manuscripts don’t burn, yet the leaf you asked for seems to have gone missing from this volume.</p>
+      <p><a href={href('/#contents')}>Return to the Contents</a></p>
+    </div>
+  </section>
+</Book>

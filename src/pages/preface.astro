@@ -1,0 +1,43 @@
+---
+import Book from '../layouts/Book.astro';
+import RunningHead from '../components/RunningHead.astro';
+import Sidenote from '../components/Sidenote.astro';
+import ProofNote from '../components/ProofNote.astro';
+import TurnTheLeaf from '../components/TurnTheLeaf.astro';
+import { profile } from '../data/profile';
+---
+<Book
+  title="To the Reader"
+  description="The preface to Notes from the Back End: a tech worker whose spirit belongs to a bygone era, free to think and to choose what he is."
+  section="preface"
+  ribbon="To the Reader"
+>
+  <article class="leaf has-notes" aria-labelledby="preface-title">
+    <RunningHead right="To the Reader" />
+    <div class="text">
+      <header class="opening">
+        <p class="book-label">A Preface</p>
+        <h1 id="preface-title">To the Reader</h1>
+      </header>
+
+      <p class="preface-line">A fellow <span lang="la">socii malorum</span><Sidenote n={1}>Schopenhauer proposed that the fitting way to address one another is not “Sir” or “Monsieur” but “fellow-sufferer”: <i lang="la">socî malorum</i>, <i lang="fr">compagnon de misères</i>.</Sidenote> and cognitariat,<Sidenote n={2}>The cognitariat: in later Marxist writing, the proletariat of knowledge workers, who sell their minds by the hour as the factory hand once sold his arms.</Sidenote> tech-savvy literary romanticist.</p>
+
+      <div class="prose">
+        <p>That is the line I put on every profile, and this book is an attempt to explain it. I earn my living as a back-end engineer in Bogor, building the parts of software that nobody sees. I give the rest of my attention to Dostoevsky and Tolstoy, to Nietzsche, Marx and Schopenhauer, and, beside them, to Shakespeare.</p>
+        <p>I may be a tech worker, but my spirit belongs to a bygone era. That is not nostalgia. It is a choice, and the choosing is the point: I am free to think, and free to decide what I am. An old German song says it better than I can: <i lang="de">Die Gedanken sind frei.</i> Thoughts are free.</p>
+        <p>So I have bound my work as a book. The Chronicle, Book I, records where I have worked and what I built there. The Notes, Book II, look closely at a few pieces of that work, as both an engineer and a reader would want to. The Tree of Knowledge, Book III, lists my instruments, each with a reference to the place where I used it. <i lang="de">Gedanken</i>, Book IV, is for my verses, aphorisms and critiques.</p>
+        <p>Read it in order, or open it anywhere. Either way, read slowly.</p>
+      </div>
+
+      <div class="signature">
+        <span class="signature-name">{profile.name}</span>
+        <svg viewBox="0 0 220 30" aria-hidden="true"><path class="flourish" d="M6,18 C40,4 70,28 104,16 S168,6 214,14"></path></svg>
+        <span class="signature-place">Bogor, West Java</span>
+      </div>
+
+      <ProofNote>A first draft from the author’s tagline and motto. The author’s own words are to replace it.</ProofNote>
+
+      <TurnTheLeaf prev={{ path: '/#contents', label: 'Contents' }} next={{ path: '/chronicle/', label: 'Book I, The Chronicle' }} />
+    </div>
+  </article>
+</Book>

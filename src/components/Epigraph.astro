@@ -1,0 +1,13 @@
+---
+interface Props {
+  text: string;
+  by: string;
+  work?: string;
+  adapted?: boolean;
+}
+const { text, by, work, adapted = false } = Astro.props;
+---
+<blockquote class="epigraph">
+  <p>“{text}”<slot /></p>
+  <footer>{adapted ? `After ${by}` : by}{work && <>, <cite>{work}</cite></>}</footer>
+</blockquote>

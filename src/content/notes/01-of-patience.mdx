@@ -1,0 +1,44 @@
+---
+number: 1
+title: Of Patience
+subtitle: or, How the Ledger learned to Wait
+description: On the school ledger at Kejar.id. Why the heaviest report was taken out of the request and put on a queue, and how the busiest hour was rehearsed with Locust.
+house: Kejar.id
+status: published
+epigraph:
+  text: 'The strongest of all warriors are these two: Time and Patience.'
+  by: Tolstoy
+  work: War and Peace
+argument: Of the school ledger, the heaviest document a school-management system is asked to write; of why it was taken out of the request and placed on a queue; of rehearsing the busiest hour with Locust, and of watching the real one in New Relic.
+---
+import Sidenote from '../../components/Sidenote.astro';
+import PlateLedger from '../../components/PlateLedger.astro';
+import ProofNote from '../../components/ProofNote.astro';
+
+A school-management system spends most of its day on small questions. Who is present? What is the mark for this test? Has this notice been read? Each is answered in a moment, and the web application that answers them can afford to do its work while the person waits.
+
+The ledger is different.<Sidenote n={1}>The <i lang="id">leger nilai</i>: the master sheet of every pupil’s marks for a term, one table per class, with a column for every subject.</Sidenote> To compose it, the system must gather every mark of every pupil in a class, in every subject, for the whole term, and arrange them into a single document. It is the heaviest thing the system is asked to write, and it tends to be asked for at the same moment of the year, when reports fall due and everything else is busy too.
+
+### The difficulty
+
+Composed inside a web request, a ledger makes the teacher wait for every cell of it. Worse, it occupies one of the server’s workers for the whole time, and a server has only so many. A handful of ledgers requested together can leave nothing free for the small questions, and a slow report becomes a slow school.
+
+### The remedy
+
+The remedy is to stop composing the ledger in the request at all. At Kejar.id we moved heavy work of this kind onto event-driven queue jobs in Laravel. In outline, the request does only what it must: it records that a ledger is wanted, dispatches a job, and returns. A worker, separate from the web server, takes the jobs from the queue in turn, composes the ledger from PostgreSQL, and the ledger is fetched when it is ready.
+
+<PlateLedger />
+
+A queue changes what patience means. The teacher still waits for the ledger, but nobody else waits because of it, and the server’s attention is no longer held hostage by its heaviest task. Tolstoy’s Kutuzov wins not by meeting every challenge at once but by letting time do its work. A queue does something similar with load: it declines to do everything at once.
+
+### Rehearsal and watch
+
+Patience has to be tested before it is trusted. With Locust<Sidenote n={2}>Locust is an open-source load-testing tool. Its simulated users are written in plain Python.</Sidenote> I wrote simulated users who behave as a school does at its busiest, and ran them against the service before the real busy weeks came. In production, New Relic showed what the rehearsal could only predict: where the time went, and which requests lingered.
+
+<ProofNote>Figures to be supplied by the author: the size of the schools served, how long a ledger took before and after the queue, and the Locust results.</ProofNote>
+
+### Reflections
+
+The lesson I took from the ledger is that performance is mostly a question of *when*, not of *how fast*. Much of the art lies in deciding what must happen now, and what may happen soon.
+
+<ProofNote>The author’s own reflections to be added here.</ProofNote>

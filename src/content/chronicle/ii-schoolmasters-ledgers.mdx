@@ -1,0 +1,27 @@
+---
+number: 2
+title: Of Three Years among the Schoolmasters’ Ledgers
+description: June 2021 to June 2024. Back End Developer at Kejar.id, a school-management system built with Laravel and PostgreSQL.
+years: MMXXI–MMXXIV
+epigraph:
+  text: Love in action is a harsh and dreadful thing compared with love in dreams.
+  by: Elder Zosima
+  work: The Brothers Karamazov
+record:
+  office: Back End Developer
+  house: Kejar.id, kept by CV IDS Rumah Pendidikan Indonesia
+  place: Bogor, West Java
+  term: June 2021 to June 2024, three years and a month
+  instruments: [Laravel, PostgreSQL, Firebase, GitLab, Locust, New Relic]
+seeAlso:
+  - { label: 'Note I, Of Patience, on the ledger queue', path: '/notes/of-patience/' }
+---
+import Sidenote from '../../components/Sidenote.astro';
+
+When the internship ended in June 2021, I stayed. I was still a pupil at a vocational school in Bogor, and for the next three years, through the last year of school and into the first of university, I kept the back end of Kejar.id: a school-management system, built on Laravel and PostgreSQL, meant to be affordable and dependable for Indonesian teachers and the pupils in their care.
+
+A school asks simple questions. Who is present today? What did each pupil earn this term? Has the parent been told? Behind each question stood a feature I helped research, build and keep alive: attendance taken by a pupil’s coordinates, notifications sent through Firebase, a report-book with chart-based analytics, and event-driven queue jobs for the heaviest work of all, the end-of-term ledger.<Sidenote n={1}>In Indonesian schools the <i lang="id">leger nilai</i> is the master sheet of every pupil’s marks for a term: one table per class, with a column for every subject.</Sidenote> Composed on demand, a ledger holds a teacher’s request hostage. Placed on a queue, it is composed in the background and arrives when it is ready.
+
+I learned the trade in company: with front-end engineers, designers and a product manager, in an Agile rhythm. I reviewed code, refactored it, and argued for good practice in our GitLab pipeline. Before the busy weeks came, I put the servers under load with Locust;<Sidenote n={2}>Locust is an open-source load-testing tool. Its simulated users are written in plain Python, so a rehearsal of the busiest hour reads like a script.</Sidenote> when they came, I watched them in New Relic. And I wrote it all down, in English, in Notion, because a feature that no one can explain is a feature that no one can keep.
+
+These were the years in which I learned what the Elder meant. A feature in a demonstration is love in dreams. A feature at the morning bell, when a whole school checks in at once, is love in action.
