@@ -1,0 +1,36 @@
+---
+number: 3
+title: Of Legacy
+subtitle: or, How an Express was rebuilt as a Nest
+description: On refactoring the back end of a Sharia-compliant travel-insurance platform from Express.js to NestJS, on the road toward microservices.
+house: AMA Salam
+status: published
+epigraph:
+  text: Happy codebases are all alike; every legacy codebase is legacy in its own way.
+  by: Tolstoy
+  work: Anna Karenina
+  adapted: true
+  original: 'Tolstoy opens Anna Karenina: “Happy families are all alike; every unhappy family is unhappy in its own way.”'
+argument: Of a travel-insurance platform written to the principles of Sharia; of its back end, first composed in Express.js; of the reasons for recomposing it in NestJS and setting it on the road toward microservices; and of what the author learned in the moving.
+---
+import Sidenote from '../../components/Sidenote.astro';
+import PlateLegacy from '../../components/PlateLegacy.astro';
+import ProofNote from '../../components/ProofNote.astro';
+
+Express gives you a router and a promise, and leaves the rest to your conscience. That freedom is its charm, and on a young product it is exactly right. NestJS asks more of you: modules, providers, dependency injection, and a shape that every member of a team can recognise. When I joined PT AMA Salam Indonesia in July 2024, to work on a travel-insurance platform built on the principles of Sharia,<Sidenote n={1}>Sharia-compliant insurance is commonly called <i lang="ar-Latn">takaful</i>: participants pool contributions to help one another, and the operator manages the fund rather than selling risk.</Sidenote> my part was to help move a working back end from the first to the second, and to help carry its architecture toward microservices.
+
+A refactor of this kind is closer to translation than to composition. The meaning must survive, though every sentence changes: each route keeps its contract, each rule of the policy keeps its wording, and the new structure earns its place only if the old behaviour is still there when the work is done.
+
+### Why NestJS
+
+The reasons are the ordinary ones, and none the worse for that. A platform that sells insurance gathers rules quickly: of price, of eligibility, of what a policy covers and on what terms. Rules want a home. NestJS gives each part of the domain a module, each dependency an explicit place to come from, and each request a predictable path through controllers and providers. For a growing team that matters more than the speed of writing: code that announces its own structure is code that the next person can change without fear.
+
+Modules with clear boundaries are also the natural first draft of services, which is why the refactor and the move toward microservices belonged together.
+
+<PlateLegacy />
+
+<ProofNote>The order of the work, the decisions and what they cost, and the results in figures, to be supplied by the author.</ProofNote>
+
+### Reflections
+
+What the work taught me is that legacy is not an insult. Every legacy codebase was once somebody’s best answer to a question that has since changed. A refactor is a new answer to the new question, and it is owed the same respect it will one day need from whoever comes after.

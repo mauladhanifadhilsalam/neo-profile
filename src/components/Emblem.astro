@@ -1,0 +1,65 @@
+---
+// The owl of Minerva on an olive branch beneath a crescent moon: the book's emblem and ex libris.
+interface Props {
+  class?: string;
+}
+const { class: className = 'emblem' } = Astro.props;
+---
+<svg class={className} viewBox="0 0 240 240" role="img" aria-labelledby="emblem-title">
+  <title id="emblem-title">Emblem: the owl of Minerva on an olive branch beneath a crescent moon, ringed by the words “Die Gedanken sind frei” and the monogram F·M</title>
+  <defs>
+    <path id="ring-top" d="M36,120 a84,84 0 1,1 168,0"></path>
+    <path id="ring-bottom" d="M28,120 a92,92 0 0,0 184,0"></path>
+    <mask id="crescent-mask">
+      <rect width="240" height="240" fill="#fff"></rect>
+      <circle cx="83.5" cy="66" r="12.5" fill="#000"></circle>
+    </mask>
+  </defs>
+  <circle class="e-rim" cx="120" cy="120" r="115"></circle>
+  <circle class="e-rim-thin" cx="120" cy="120" r="110"></circle>
+  <circle class="e-beads" cx="120" cy="120" r="104"></circle>
+  <text class="e-legend" lang="de"><textPath href="#ring-top" startOffset="50%" text-anchor="middle">Die Gedanken sind frei</textPath></text>
+  <text class="e-legend"><textPath href="#ring-bottom" startOffset="50%" text-anchor="middle">F · M · MMXXVI</textPath></text>
+  <circle class="e-field" cx="120" cy="120" r="78"></circle>
+  <circle class="e-field-ring" cx="120" cy="120" r="74"></circle>
+
+  <use class="e-star" href="#star" x="153" y="53" width="7" height="7"></use>
+  <use class="e-star" href="#star" x="170" y="74" width="5" height="5"></use>
+  <use class="e-star" href="#star" x="178" y="100" width="6" height="6"></use>
+  <use class="e-star" href="#star" x="136" y="46" width="4.5" height="4.5"></use>
+  <use class="e-star" href="#star" x="101" y="47" width="5" height="5"></use>
+  <use class="e-star" href="#star" x="58" y="104" width="5.5" height="5.5"></use>
+  <use class="e-star" href="#star" x="164" y="126" width="4" height="4"></use>
+
+  <circle class="e-moon" cx="77" cy="72" r="14" mask="url(#crescent-mask)"></circle>
+
+  <path class="e-ink" d="M116,164 L124,184 L132,164 Z"></path>
+  <path class="e-line" stroke-width="2.6" d="M56,177 C88,171 128,168 186,158"></path>
+  <ellipse class="e-hatch" stroke-width=".7" cx="72" cy="168" rx="8.5" ry="3" transform="rotate(-32 72 168)"></ellipse>
+  <ellipse class="e-hatch" stroke-width=".7" cx="86" cy="181" rx="8.5" ry="3" transform="rotate(28 86 181)"></ellipse>
+  <ellipse class="e-hatch" stroke-width=".7" cx="98" cy="166" rx="7.5" ry="2.8" transform="rotate(-38 98 166)"></ellipse>
+  <ellipse class="e-hatch" stroke-width=".7" cx="164" cy="153" rx="8.5" ry="3" transform="rotate(-40 164 153)"></ellipse>
+  <ellipse class="e-hatch" stroke-width=".7" cx="174" cy="167" rx="8.5" ry="3" transform="rotate(26 174 167)"></ellipse>
+  <circle class="e-ink" cx="92" cy="186" r="2.8"></circle>
+  <circle class="e-ink" cx="180" cy="173" r="2.8"></circle>
+
+  <ellipse class="e-under" cx="124" cy="136" rx="25" ry="33"></ellipse>
+  <ellipse class="e-hatch" cx="124" cy="136" rx="25" ry="33"></ellipse>
+  <path class="e-line" stroke-width=".9" d="M110,121 q4,4 8,0 M120,121 q4,4 8,0 M106,131 q4,4 8,0 M116,131 q4,4 8,0 M126,131 q4,4 8,0 M108,141 q4,4 8,0 M118,141 q4,4 8,0 M112,151 q4,4 8,0 M122,151 q4,4 8,0"></path>
+  <path class="e-cross" d="M135,108 C155,118 159,146 149,171 C140,162 132,140 135,108 Z"></path>
+
+  <circle class="e-under" cx="122" cy="94" r="21.5"></circle>
+  <circle class="e-hatch" cx="122" cy="94" r="21.5"></circle>
+  <path class="e-ink" d="M106,82 L101,65 L113,77 Z"></path>
+  <path class="e-ink" d="M138,82 L143,65 L131,77 Z"></path>
+  <circle class="e-disc" cx="114" cy="95" r="9.5"></circle>
+  <circle class="e-disc" cx="130" cy="95" r="9.5"></circle>
+  <circle class="e-eye" cx="114" cy="95" r="6"></circle>
+  <circle class="e-eye" cx="130" cy="95" r="6"></circle>
+  <circle class="e-ink" cx="114" cy="95" r="3"></circle>
+  <circle class="e-ink" cx="130" cy="95" r="3"></circle>
+  <circle class="e-under" cx="115.2" cy="93.8" r=".9"></circle>
+  <circle class="e-under" cx="131.2" cy="93.8" r=".9"></circle>
+  <path class="e-ink" d="M122,99 L119,104 L122,110 L125,104 Z"></path>
+  <path class="e-line" stroke-width="1.3" d="M113,166 l-3,4.5 M116,166 l0,5.5 M119,166 l3,4.5 M127,165 l-3,4.5 M130,165 l0,5.5 M133,165 l3,4.5"></path>
+</svg>

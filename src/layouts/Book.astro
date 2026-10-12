@@ -1,0 +1,142 @@
+---
+import '@fontsource/eb-garamond/400.css';
+import '@fontsource/eb-garamond/400-italic.css';
+import '@fontsource/eb-garamond/500.css';
+import '@fontsource/eb-garamond/600.css';
+import '@fontsource/im-fell-english/400.css';
+import '@fontsource/im-fell-english/400-italic.css';
+import '@fontsource/im-fell-english-sc/400.css';
+import '@fontsource/unifrakturmaguntia/400.css';
+import '../styles/book.css';
+import '../styles/print.css';
+
+import SvgDefs from '../components/SvgDefs.astro';
+import Spine, { type Section } from '../components/Spine.astro';
+import { href } from '../lib/book';
+import { profile } from '../data/profile';
+
+interface Props {
+  /** The page's own name; the book's name is appended. Omit on the title page. */
+  title?: string;
+  description: string;
+  section: Section;
+  /** When set, this leaf is remembered by the ribbon bookmark under this title. */
+  ribbon?: string;
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>;
+}
+
+const { title, description, section, ribbon, noindex = false, jsonLd } = Astro.props;
+const bookName = 'Notes from the Back End';
+const fullTitle = title ? `${title} · ${bookName}` : `${bookName} · ${profile.name}, ${profile.plainTitle}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL(href('/og.png'), Astro.site);
+const ld = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={profile.name} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    <meta name="theme-color" content="#E6DCC8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#100C09" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href={href('/favicon.svg')} type="image/svg+xml" />
+    <link rel="sitemap" href={href('/sitemap-index.xml')} />
+    <link rel="alternate" type="application/json" href={href('/cv.json')} title="Machine-readable edition" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={bookName} />
+    <meta property="og:title" content={title ?? bookName} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script is:inline>
+      // Restore the reader's lamp before first paint, so the page never flashes the wrong paper.
+      (function () {
+        try {
+          var t = localStorage.getItem('nftbe-lamp');
+          if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+    {ld && <script type="application/ld+json" set:html={ld} />}
+  </head>
+  <body data-ribbon={ribbon} data-cv={href('/cv.json')}>
+    <a class="skip" href="#main">Skip to the text</a>
+    <SvgDefs />
+    <Spine section={section} />
+    <main class="book" id="main">
+      <slot />
+    </main>
+    <footer class="colophon">
+      <p class="fleuron" aria-hidden="true">⁂</p>
+      <nav aria-label="Back matter">
+        <a href={href('/honours/')}>Honours</a>
+        <a href={href('/colophon/')}>Colophon</a>
+        <a href={href('/abridgement/')}>The Abridgement</a>
+        <a href={href('/cv.json')}>cv.json</a>
+      </nav>
+      <p class="ru" lang="ru">«Рукописи не горят.»</p>
+      <p>Manuscripts don’t burn. Bulgakov, <cite>The Master and Margarita</cite></p>
+    </footer>
+
+    <script>
+      const root = document.documentElement;
+      const LAMP_KEY = 'nftbe-lamp';
+      const RIBBON_KEY = 'nftbe-ribbon';
+
+      // The lamp: Daylight or Lamplight, remembered per reader.
+      const lamp = document.getElementById('lamp');
+      const lampLabel = document.getElementById('lamp-label');
+      const media = window.matchMedia('(prefers-color-scheme: dark)');
+      const isDark = () => {
+        const t = root.getAttribute('data-theme');
+        if (t === 'dark') return true;
+        if (t === 'light') return false;
+        return media.matches;
+      };
+      const syncLamp = () => {
+        const dark = isDark();
+        lamp?.setAttribute('aria-pressed', String(dark));
+        if (lampLabel) lampLabel.textContent = dark ? 'Snuff the lamp' : 'Light the lamp';
+      };
+      lamp?.addEventListener('click', () => {
+        const next = isDark() ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem(LAMP_KEY, next); } catch {}
+        syncLamp();
+      });
+      media.addEventListener('change', syncLamp);
+      syncLamp();
+
+      // The ribbon: remember the last chapter or Note opened, and offer it on the title page.
+      const ribbonTitle = document.body.dataset.ribbon;
+      if (ribbonTitle) {
+        try { localStorage.setItem(RIBBON_KEY, JSON.stringify({ path: location.pathname, title: ribbonTitle })); } catch {}
+      }
+      const resume = document.getElementById('resume');
+      const resumeLink = document.getElementById('resume-link');
+      if (resume && resumeLink) {
+        try {
+          const saved = JSON.parse(localStorage.getItem(RIBBON_KEY) ?? 'null');
+          if (saved && typeof saved.path === 'string' && typeof saved.title === 'string' && saved.path.startsWith('/') && saved.path !== location.pathname) {
+            resumeLink.setAttribute('href', saved.path);
+            resumeLink.textContent = saved.title;
+            resume.hidden = false;
+          }
+        } catch {}
+      }
+
+      console.log('%cDie Gedanken sind frei.', 'font-family: Georgia, serif; font-size: 16px; font-style: italic;');
+      console.log(`Hail, fellow artificer. A machine-readable edition of this book waits at ${document.body.dataset.cv}`);
+    </script>
+  </body>
+</html>

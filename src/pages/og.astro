@@ -1,0 +1,55 @@
+---
+// The social card, 1200 × 630, screenshotted to /og.png after the build. Not linked and not indexed.
+import '@fontsource/eb-garamond/400.css';
+import '@fontsource/eb-garamond/400-italic.css';
+import '@fontsource/im-fell-english/400.css';
+import '@fontsource/im-fell-english/400-italic.css';
+import '@fontsource/im-fell-english-sc/400.css';
+import '@fontsource/unifrakturmaguntia/400.css';
+import '../styles/book.css';
+import SvgDefs from '../components/SvgDefs.astro';
+import Emblem from '../components/Emblem.astro';
+import { profile } from '../data/profile';
+---
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>Notes from the Back End: card</title>
+    <style is:global>
+      body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+      .card {
+        width: 1200px; height: 630px; box-sizing: border-box;
+        background: var(--grain), var(--paper);
+        border: 18px solid var(--desk);
+        outline: 1px solid var(--hairline); outline-offset: -26px;
+        display: grid; grid-template-columns: 400px 1fr; align-items: center; gap: 40px; padding: 0 80px 0 70px;
+      }
+      .card .emblem { width: 380px; margin: 0; }
+      .words { display: grid; gap: 14px; text-align: center; justify-items: center; }
+      .words .t-big { font-size: 92px; }
+      .words .t-small { font-size: 28px; }
+      .words .author { font-size: 34px; }
+      .words .tagline { font-size: 22px; max-width: 520px; }
+      .words .motto-de { font-size: 30px; }
+    </style>
+  </head>
+  <body>
+    <SvgDefs />
+    <div class="card">
+      <Emblem />
+      <div class="words">
+        <div style="display:grid;gap:6px;line-height:1">
+          <span class="t-big">Notes</span>
+          <span class="t-small">from the</span>
+          <span class="t-big">Back End</span>
+        </div>
+        <div class="rule-double"></div>
+        <p class="author">{profile.name}</p>
+        <p class="tagline">{profile.tagline}</p>
+        <p class="motto-de" lang="de">Die Gedanken sind frei</p>
+      </div>
+    </div>
+  </body>
+</html>

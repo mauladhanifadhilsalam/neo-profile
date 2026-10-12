@@ -1,0 +1,59 @@
+---
+import { execSync } from 'node:child_process';
+import Book from '../layouts/Book.astro';
+import RunningHead from '../components/RunningHead.astro';
+import TurnTheLeaf from '../components/TurnTheLeaf.astro';
+import { href, toRoman } from '../lib/book';
+
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const now = new Date();
+const printed = `${now.getUTCDate()} ${MONTHS[now.getUTCMonth()]} ${toRoman(now.getUTCFullYear())}`;
+
+let impression = process.env.GITHUB_SHA?.slice(0, 7) ?? '';
+if (!impression) {
+  try {
+    impression = execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch {
+    impression = 'unrecorded';
+  }
+}
+---
+<Book
+  title="Colophon"
+  description="Of the making of Notes from the Back End: its type, its paper, its press and its machine-readable edition."
+  section="colophon"
+>
+  <article class="leaf" aria-labelledby="colophon-title">
+    <RunningHead right="Colophon" />
+    <div class="text colophon-text">
+      <header class="opening">
+        <p class="book-label">Back Matter</p>
+        <h1 id="colophon-title">Colophon</h1>
+        <p class="subtitle">Of the making of this book</p>
+      </header>
+
+      <dl>
+        <dt>Type</dt>
+        <dd>Display in IM Fell English, the types bequeathed to Oxford by Bishop John Fell in the seventeenth century, digitised by Igino Marini. Text in EB Garamond. The motto in UnifrakturMaguntia, a Fraktur.</dd>
+        <dt>Paper</dt>
+        <dd>Daylight: parchment, iron-gall ink, rubric red and gilt. Lamplight: a walnut desk by candle.</dd>
+        <dt>Emblem</dt>
+        <dd>The owl of Minerva on an olive branch beneath a crescent moon, ringed by the motto <i lang="de">Die Gedanken sind frei</i>.</dd>
+        <dt>Press</dt>
+        <dd>Composed with Astro as a static book of plain pages, with no tracking and no server, and printed on GitHub Pages.</dd>
+        <dt>Printed</dt>
+        <dd>{printed}</dd>
+        <dt>Impression</dt>
+        <dd><code>{impression}</code></dd>
+        <dt>For automata</dt>
+        <dd>A machine-readable edition is kept at <a href={href('/cv.json')}><code>{href('/cv.json')}</code></a>, and a one-leaf <a href={href('/abridgement/')}>Abridgement</a> for readers in haste.</dd>
+      </dl>
+
+      <div class="prose">
+        <p>Every version of this book is kept in version control, so Bulgakov’s promise holds for it: <span lang="ru">«Рукописи не горят»</span>. Manuscripts don’t burn.</p>
+      </div>
+
+      <TurnTheLeaf prev={{ path: '/correspondence/', label: 'Correspondence' }} next={{ path: '/abridgement/', label: 'The Abridgement' }} />
+    </div>
+  </article>
+</Book>

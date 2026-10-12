@@ -1,0 +1,10 @@
+---
+// A note in the outer margin on wide screens, opened by tapping its mark on narrow ones.
+interface Props {
+  /** The mark shown in the text: a number, or a symbol such as "*". */
+  n: number | string;
+}
+const { n } = Astro.props;
+const id = `sn-${typeof n === 'number' ? n : 'star'}`;
+---
+<span class="sn-mark"><label for={id}>{n}</label></span><input class="sn-toggle" type="checkbox" id={id} aria-label={`Show note ${n}`} /><span class="sidenote" role="note"><span class="sn-num">{n}</span><slot /></span>

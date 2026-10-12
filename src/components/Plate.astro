@@ -1,0 +1,12 @@
+---
+// An engraved plate: a diagram in its own scrolling frame, with a numbered caption.
+interface Props {
+  number: string;
+  caption: string;
+}
+const { number, caption } = Astro.props;
+---
+<figure class="plate">
+  <div class="plate-frame"><slot /></div>
+  <figcaption><span class="sc">Plate {number}.</span> {caption}</figcaption>
+</figure>

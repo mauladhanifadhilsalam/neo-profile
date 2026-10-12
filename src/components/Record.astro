@@ -1,0 +1,22 @@
+---
+interface Props {
+  record: {
+    office: string;
+    house: string;
+    place: string;
+    term: string;
+    instruments: string[];
+  };
+}
+const { record } = Astro.props;
+---
+<div class="record">
+  <p class="record-cap">The Record</p>
+  <dl>
+    <dt>Office</dt><dd>{record.office}</dd>
+    <dt>House</dt><dd>{record.house}</dd>
+    <dt>Place</dt><dd>{record.place}</dd>
+    <dt>Term</dt><dd>{record.term}</dd>
+    {record.instruments.length > 0 && <><dt>Instruments</dt><dd>{record.instruments.join(' · ')}</dd></>}
+  </dl>
+</div>

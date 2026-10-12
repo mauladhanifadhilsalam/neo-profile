@@ -1,0 +1,117 @@
+---
+import Book from '../layouts/Book.astro';
+import RunningHead from '../components/RunningHead.astro';
+import TurnTheLeaf from '../components/TurnTheLeaf.astro';
+import { profile } from '../data/profile';
+---
+<Book
+  title="Correspondence"
+  description="Write to Fadhil Mauladhani: a letter by email, or a note on LinkedIn."
+  section="correspondence"
+>
+  <article class="leaf" aria-labelledby="correspondence-title">
+    <RunningHead right="Correspondence" />
+    <div class="text">
+      <header class="opening">
+        <p class="book-label">Back Matter</p>
+        <h1 id="correspondence-title">Correspondence</h1>
+      </header>
+
+      <form class="letter" id="letter" data-email={profile.email} novalidate>
+        <p class="salutation">Dear Fadhil,</p>
+        <div class="field">
+          <label class="visually-hidden" for="letter-body">Your letter</label>
+          <textarea id="letter-body" name="body" rows="8" required placeholder="Write your letter here…"></textarea>
+        </div>
+        <div class="closing">
+          <span>Yours faithfully,</span>
+          <label class="visually-hidden" for="letter-name">Your name</label>
+          <input id="letter-name" name="name" type="text" autocomplete="name" placeholder="your name" />
+          <label class="visually-hidden" for="letter-reply">Where to reply</label>
+          <input id="letter-reply" name="reply" type="text" autocomplete="email" placeholder="where to reply (optional)" />
+        </div>
+        <div class="seal-row">
+          <button class="button" type="submit">Seal &amp; Send</button>
+          <span id="wax-holder" hidden><svg class="wax" id="wax" viewBox="0 0 80 80" aria-hidden="true">
+            <path class="w-body" d="M40,4 C52,6 58,2 66,10 C76,18 72,26 76,36 C80,48 72,54 68,62 C62,74 52,72 42,76 C30,80 24,72 16,68 C6,62 8,52 4,42 C0,30 8,24 12,16 C18,6 28,2 40,4 Z"></path>
+            <circle class="w-ring" cx="40" cy="40" r="24"></circle>
+            <text class="w-letters" x="40" y="47" text-anchor="middle">F·M</text>
+          </svg></span>
+        </div>
+        <p class="status" id="letter-status" role="status" aria-live="polite"></p>
+        <p class="hint">Sealing opens your own mail program with the letter written out, addressed and ready to send. Nothing is sent from this page.</p>
+      </form>
+
+      <div class="address-card">
+        <div class="row">
+          <span class="label">By email</span>
+          <span class="value" id="email-address">{profile.email}</span>
+          <button class="button quiet" type="button" id="copy-email">Copy the address</button>
+        </div>
+        <div class="row">
+          <span class="label">By LinkedIn</span>
+          <a class="value" href={profile.links.linkedin} rel="me">{profile.links.linkedin.replace('https://www.', '')}</a>
+        </div>
+        <div class="row">
+          <span class="label">From</span>
+          <span>{profile.location}</span>
+        </div>
+      </div>
+
+      <TurnTheLeaf prev={{ path: '/honours/', label: 'Honours & Laurels' }} next={{ path: '/colophon/', label: 'Colophon' }} />
+    </div>
+  </article>
+</Book>
+
+<script>
+  const form = document.getElementById('letter') as HTMLFormElement | null;
+  const status = document.getElementById('letter-status');
+  const wax = document.getElementById('wax');
+  const body = document.getElementById('letter-body') as HTMLTextAreaElement | null;
+  const nameField = document.getElementById('letter-name') as HTMLInputElement | null;
+  const replyField = document.getElementById('letter-reply') as HTMLInputElement | null;
+
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!form || !status || !body) return;
+    const text = body.value.trim();
+    if (!text) {
+      status.textContent = 'The letter is empty. Write a few lines before sealing it.';
+      body.focus();
+      return;
+    }
+    const name = nameField?.value.trim() ?? '';
+    const reply = replyField?.value.trim() ?? '';
+    const letter = `Dear Fadhil,\n\n${text}\n\nYours faithfully,\n${name}${reply ? `\n${reply}` : ''}`;
+    const subject = 'A letter by way of Notes from the Back End';
+    const url = `mailto:${form.dataset.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(letter)}`;
+
+    const holder = document.getElementById('wax-holder');
+    if (holder) holder.hidden = false;
+    if (wax) {
+      wax.classList.remove('stamped');
+      void wax.getBoundingClientRect();
+      wax.classList.add('stamped');
+    }
+    status.textContent = 'Sealed. Your mail program should now open with the letter. If it does not, copy the address below and send it yourself.';
+    window.location.href = url;
+  });
+
+  const copy = document.getElementById('copy-email');
+  const address = document.getElementById('email-address');
+  copy?.addEventListener('click', () => {
+    const value = address?.textContent ?? '';
+    const selectAddress = () => {
+      if (!address) return;
+      const range = document.createRange();
+      range.selectNodeContents(address);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    };
+    navigator.clipboard
+      .writeText(value)
+      .then(() => { copy.textContent = 'Copied'; })
+      .catch(() => { selectAddress(); copy.textContent = 'Selected: press Ctrl+C'; });
+  });
+</script>

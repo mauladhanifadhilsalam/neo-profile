@@ -1,0 +1,121 @@
+---
+import Book from '../layouts/Book.astro';
+import RunningHead from '../components/RunningHead.astro';
+import Plate from '../components/Plate.astro';
+import TurnTheLeaf from '../components/TurnTheLeaf.astro';
+import { profile, type Branch } from '../data/profile';
+import { href, toWords } from '../lib/book';
+
+// The engraved tree: one branch per faculty, one leaf per instrument on it.
+type Point = [number, number];
+const geometry: Record<Branch['key'], { from: Point; via: Point; to: Point; label: Point }> = {
+  memory: { from: [340, 205], via: [240, 202], to: [120, 160], label: [112, 244] },
+  reason: { from: [340, 178], via: [300, 100], to: [220, 58], label: [180, 26] },
+  imagination: { from: [340, 178], via: [380, 100], to: [460, 58], label: [500, 26] },
+  'mechanical-arts': { from: [340, 205], via: [440, 202], to: [560, 160], label: [556, 244] },
+};
+
+const at = (g: { from: Point; via: Point; to: Point }, t: number): Point => {
+  const u = 1 - t;
+  return [
+    u * u * g.from[0] + 2 * u * t * g.via[0] + t * t * g.to[0],
+    u * u * g.from[1] + 2 * u * t * g.via[1] + t * t * g.to[1],
+  ];
+};
+const tangent = (g: { from: Point; via: Point; to: Point }, t: number): Point => [
+  2 * (1 - t) * (g.via[0] - g.from[0]) + 2 * t * (g.to[0] - g.via[0]),
+  2 * (1 - t) * (g.via[1] - g.from[1]) + 2 * t * (g.to[1] - g.via[1]),
+];
+
+const tree = profile.knowledge.map((branch) => {
+  const g = geometry[branch.key];
+  const n = branch.instruments.length;
+  const leaves = branch.instruments.map((_, i) => {
+    const t = 0.22 + 0.74 * (n === 1 ? 1 : i / (n - 1));
+    const [x, y] = at(g, t);
+    const [tx, ty] = tangent(g, t);
+    const len = Math.hypot(tx, ty);
+    const side = i % 2 === 0 ? 1 : -1;
+    const nx = (-ty / len) * side;
+    const ny = (tx / len) * side;
+    const angle = (Math.atan2(ty, tx) * 180) / Math.PI + side * 38;
+    const twigEnd: Point = [x + nx * 6, y + ny * 6];
+    const leaf: Point = [x + nx * 11, y + ny * 11];
+    return { twig: `M${x.toFixed(1)},${y.toFixed(1)} L${twigEnd[0].toFixed(1)},${twigEnd[1].toFixed(1)}`, leaf, angle };
+  });
+  return {
+    ...branch,
+    path: `M${g.from[0]},${g.from[1]} Q${g.via[0]},${g.via[1]} ${g.to[0]},${g.to[1]}`,
+    label: g.label,
+    leaves,
+  };
+});
+
+const total = profile.knowledge.reduce((sum, b) => sum + b.instruments.length, 0);
+---
+<Book
+  title="Book III: The Tree of Knowledge"
+  description="The instruments of Fadhil Mauladhani, arranged after the Encyclopédie: databases, back-end frameworks, machine learning, front-end work and the tools of the workshop, each with a reference to where it was used."
+  section="knowledge"
+>
+  <article class="leaf" aria-labelledby="knowledge-title">
+    <RunningHead right="Book III · The Tree of Knowledge" />
+    <div class="text">
+      <header class="opening">
+        <p class="book-label">Book the Third</p>
+        <h1 id="knowledge-title">The Tree of Knowledge</h1>
+      </header>
+      <div class="prose">
+        <p>Diderot and d’Alembert divided human knowledge by the faculties of the mind: Memory, Reason and Imagination. The author’s instruments are arranged here after their example, with a fourth branch for the Mechanical Arts, the tools of the workshop. Each entry gives the place in this book where the instrument was used.</p>
+      </div>
+    </div>
+
+    <div class="wide">
+
+      <Plate number="I" caption={`The Tree of Knowledge, after the Encyclopédie of Diderot and d’Alembert. Each of its ${toWords(total)} leaves is an instrument.`}>
+        <svg class="tree" viewBox="0 0 680 320" role="img" aria-labelledby="tree-title">
+          <title id="tree-title">An engraved tree whose trunk divides into four branches, Memory, Reason, Imagination and the Mechanical Arts, each bearing one leaf for every instrument listed beneath.</title>
+          <path class="t-root" d="M240,300 H440"></path>
+          <path class="t-root" d="M332,298 C312,302 292,300 270,306 M348,298 C368,302 390,300 412,306 M340,298 C338,304 336,308 333,314"></path>
+          <path class="e-hatch" d="M330,300 C332,262 334,222 335,176 L345,176 C346,222 348,262 350,300 Z"></path>
+          {tree.map((b) => (
+            <g>
+              <path class="t-branch" d={b.path}></path>
+              {b.leaves.map((l) => (
+                <>
+                  <path class="t-twig" d={l.twig}></path>
+                  <ellipse class="t-leaf" cx={l.leaf[0].toFixed(1)} cy={l.leaf[1].toFixed(1)} rx="7" ry="2.7" transform={`rotate(${l.angle.toFixed(1)} ${l.leaf[0].toFixed(1)} ${l.leaf[1].toFixed(1)})`}></ellipse>
+                </>
+              ))}
+              <text class="t-label" x={b.label[0]} y={b.label[1]} text-anchor="middle">{b.title}</text>
+              <text class="t-gloss" x={b.label[0]} y={b.label[1] + 16} text-anchor="middle">{b.gloss}</text>
+            </g>
+          ))}
+        </svg>
+      </Plate>
+
+      <div class="branches">
+        {profile.knowledge.map((branch) => (
+          <section class="branch" aria-labelledby={`branch-${branch.key}`}>
+            <h2 id={`branch-${branch.key}`}>{branch.title}</h2>
+            <p class="gloss">{branch.gloss}</p>
+            <ul class="index-list">
+              {[...branch.instruments].sort((a, b) => a.name.localeCompare(b.name)).map((inst) => (
+                <li>
+                  <span class="name">{inst.name}</span>
+                  {inst.refs.length > 0 && (
+                    <span class="refs">{inst.refs.map((r, i) => <>{i > 0 && ', '}<a href={href(r.path)}>{r.label}</a></>)}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+    </div>
+
+    <div class="text">
+      <TurnTheLeaf prev={{ path: '/notes/', label: 'Book II' }} next={{ path: '/gedanken/', label: 'Book IV, Gedanken' }} />
+    </div>
+  </article>
+</Book>

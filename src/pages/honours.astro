@@ -1,0 +1,58 @@
+---
+import Book from '../layouts/Book.astro';
+import RunningHead from '../components/RunningHead.astro';
+import TurnTheLeaf from '../components/TurnTheLeaf.astro';
+import { profile } from '../data/profile';
+import { toRoman } from '../lib/book';
+---
+<Book
+  title="Honours & Laurels"
+  description="Awards, certificates and languages of Fadhil Mauladhani, including a TOEIC score of 985 among the ten best in a national programme."
+  section="honours"
+>
+  <article class="leaf" aria-labelledby="honours-title">
+    <RunningHead right="Honours & Laurels" />
+    <div class="text">
+      <header class="opening">
+        <p class="book-label">Back Matter</p>
+        <h1 id="honours-title">Honours &amp; Laurels</h1>
+      </header>
+
+      <ol class="laurels">
+        {profile.honours.map((h) => (
+          <li>
+            <span class="year"><span lang="la">{toRoman(h.year)}</span><span class="visually-hidden"> ({h.year})</span></span>
+            <span class="title">{h.title}</span>
+            {h.conferredBy && <span class="by">{h.conferredBy}</span>}
+            {h.detail && <span class="detail">{h.detail}</span>}
+          </li>
+        ))}
+      </ol>
+
+      <h2 class="section-title">Certificates</h2>
+      <table class="ledger">
+        <thead>
+          <tr><th scope="col">Year</th><th scope="col">Certificate</th><th scope="col">Issuer</th></tr>
+        </thead>
+        <tbody>
+          {profile.certificates.map((c) => (
+            <tr>
+              <td class="year">{c.year ?? ''}</td>
+              <td>{c.title}</td>
+              <td class="issuer">{c.issuer ?? ''}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h2 class="section-title">Tongues</h2>
+      <ul class="tongues">
+        {profile.languages.map((l) => (
+          <li><span class="name">{l.name}</span><span class="level">{l.level}</span></li>
+        ))}
+      </ul>
+
+      <TurnTheLeaf prev={{ path: '/gedanken/', label: 'Book IV' }} next={{ path: '/correspondence/', label: 'Correspondence' }} />
+    </div>
+  </article>
+</Book>

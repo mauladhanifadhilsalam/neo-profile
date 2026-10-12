@@ -1,0 +1,6 @@
+---
+// A printer's note for material still to be supplied. Rendered in development only,
+// so the published book never shows gaps, while they stay visible during editing.
+const show = import.meta.env.DEV;
+---
+{show && <p class="proof-note">☞ <span class="sc">Proof note.</span> <slot /></p>}

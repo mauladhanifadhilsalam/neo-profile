@@ -1,0 +1,62 @@
+---
+import { render } from 'astro:content';
+import Book from '../../layouts/Book.astro';
+import RunningHead from '../../components/RunningHead.astro';
+import Epigraph from '../../components/Epigraph.astro';
+import Record from '../../components/Record.astro';
+import TurnTheLeaf from '../../components/TurnTheLeaf.astro';
+import { getChronicle, chapterPath, type Chapter } from '../../lib/collections';
+import { href, readingPhrase, toRoman } from '../../lib/book';
+
+export async function getStaticPaths() {
+  const chapters = await getChronicle();
+  return chapters.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: { entry, prev: chapters[i - 1], next: chapters[i + 1] },
+  }));
+}
+
+interface Props {
+  entry: Chapter;
+  prev?: Chapter;
+  next?: Chapter;
+}
+const { entry, prev, next } = Astro.props;
+const { Content } = await render(entry);
+const roman = toRoman(entry.data.number);
+const { epigraph, record, seeAlso } = entry.data;
+---
+<Book
+  title={`Chapter ${roman}: ${entry.data.title}`}
+  description={entry.data.description}
+  section="chronicle"
+  ribbon={`Chapter ${roman}`}
+>
+  <article class="leaf has-notes" aria-labelledby="chapter-title">
+    <RunningHead right="Book I · The Chronicle" />
+    <div class="text">
+      <header class="opening">
+        <p class="book-label">Book the First · The Chronicle</p>
+        <p class="chapter-num">Chapter {roman}</p>
+        <h1 id="chapter-title">{entry.data.title}</h1>
+        <p class="reading">{readingPhrase(entry.body ?? '')}</p>
+      </header>
+
+      <Epigraph text={epigraph.text} by={epigraph.by} work={epigraph.work} adapted={epigraph.adapted} />
+      <Record record={record} />
+
+      <div class="prose">
+        <Content />
+      </div>
+
+      {seeAlso.length > 0 && (
+        <p class="see-also"><span class="sc">See also</span> {seeAlso.map((s, i) => <>{i > 0 && '; '}<a href={href(s.path)}>{s.label}</a></>)}.</p>
+      )}
+
+      <TurnTheLeaf
+        prev={prev ? { path: chapterPath(prev), label: `Chapter ${toRoman(prev.data.number)}` } : { path: '/chronicle/', label: 'Book I' }}
+        next={next ? { path: chapterPath(next), label: `Chapter ${toRoman(next.data.number)}` } : { path: '/notes/', label: 'Book II, Notes' }}
+      />
+    </div>
+  </article>
+</Book>

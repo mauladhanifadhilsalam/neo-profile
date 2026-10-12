@@ -1,0 +1,70 @@
+---
+import Book from '../layouts/Book.astro';
+import { profile } from '../data/profile';
+import { href, shortMonthYear } from '../lib/book';
+
+const span = (start: string, end: string | null) => `${shortMonthYear(start)} – ${end ? shortMonthYear(end) : 'present'}`;
+const yearSpan = (start: string, end: string) => `${start.slice(0, 4)} – ${end.slice(0, 4)}`;
+const siteUrl = new URL(href('/'), Astro.site).toString().replace(/^https:\/\//, '');
+const skills = profile.knowledge.map((b) => ({ title: b.title, names: b.instruments.map((i) => i.name).join(', ') }));
+---
+<Book
+  title="The Abridgement"
+  description={`The one-page CV of ${profile.name}, ${profile.plainTitle.toLowerCase()}: experience, education, skills, honours and certificates.`}
+  section="abridgement"
+>
+  <article class="leaf abridgement" aria-labelledby="cv-name">
+    <header>
+      <h1 id="cv-name">{profile.name}</h1>
+      <p class="line">{profile.plainTitle} · {profile.location}</p>
+      <p class="contact">
+        <a href={`mailto:${profile.email}`}>{profile.email}</a>
+        <a href={profile.links.linkedin}>{profile.links.linkedin.replace('https://www.', '')}</a>
+        <span>{siteUrl}</span>
+      </p>
+    </header>
+
+    <h2>Summary</h2>
+    <p>{profile.summary}</p>
+
+    <h2>Experience</h2>
+    {profile.experience.map((p) => (
+      <div class="cv-entry">
+        <div class="head">
+          <span><span class="what">{p.role}</span>, <span class="where">{p.organisation}</span>{p.place !== 'Indonesia' && <>, {p.place}</>}</span>
+          <span class="when">{span(p.start, p.end)}</span>
+        </div>
+        {p.highlights.length > 0 && <ul>{p.highlights.map((h) => <li>{h}</li>)}</ul>}
+      </div>
+    ))}
+
+    <h2>Education</h2>
+    {profile.education.map((e) => (
+      <div class="cv-entry">
+        <div class="head">
+          <span><span class="what">{e.course}</span>, <span class="where">{e.institution}</span></span>
+          <span class="when">{yearSpan(e.start, e.end)}</span>
+        </div>
+      </div>
+    ))}
+
+    <h2>Skills</h2>
+    <div class="cv-columns">
+      {skills.map((s) => <p><span class="k">{s.title}</span>{s.names}</p>)}
+    </div>
+
+    <h2>Honours &amp; Certificates</h2>
+    <ul class="cv-list">
+      {profile.honours.map((h) => <li>{h.title}{h.conferredBy && `, ${h.conferredBy.split(' (')[0]}`} ({h.year})</li>)}
+      <li>{profile.certificates.map((c) => `${c.issuer ? `${c.issuer} ` : ''}${c.title}${c.year ? ` (${c.year})` : ''}`).join('; ')}</li>
+    </ul>
+
+    <h2>Languages</h2>
+    <p>{profile.languages.map((l) => `${l.name} (${l.level})`).join(' · ')}</p>
+
+    <div class="cv-actions">
+      <a class="button" href={href('/abridgement.pdf')}>Take the PDF</a>
+      <a class="button quiet" href={href('/')}>Return to the book</a>
+    </div>
+  </article>
+</Book>

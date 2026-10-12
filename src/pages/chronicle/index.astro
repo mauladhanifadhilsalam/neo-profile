@@ -1,0 +1,35 @@
+---
+import Book from '../../layouts/Book.astro';
+import RunningHead from '../../components/RunningHead.astro';
+import TurnTheLeaf from '../../components/TurnTheLeaf.astro';
+import { getChronicle, chapterPath } from '../../lib/collections';
+import { href, toRoman } from '../../lib/book';
+
+const chapters = await getChronicle();
+---
+<Book
+  title="Book I: The Chronicle"
+  description="The working life of Fadhil Mauladhani in six chapters, from a schoolboy's internship at Kejar.id in 2021 to Full Stack Developer at PT AMA Salam Indonesia."
+  section="chronicle"
+>
+  <section class="leaf" aria-labelledby="chronicle-title">
+    <RunningHead right="Book I · The Chronicle" />
+    <div class="contents-head">
+      <p class="book-label">Book the First</p>
+      <h1 id="chronicle-title" class="book-title">The Chronicle</h1>
+      <p>In which the author’s working life is set down in order, from a schoolboy’s internship in 2021 to the present volume.</p>
+      <p class="fleuron" aria-hidden="true">❧</p>
+    </div>
+    <ol class="toc">
+      {chapters.map((c) => (
+        <li>
+          <a class="toc-row" href={href(chapterPath(c))}><span class="toc-n">{toRoman(c.data.number)}.</span><span class="toc-t">{c.data.title}</span><span class="leader" aria-hidden="true"></span><span class="toc-r">{c.data.years}</span></a>
+          <p class="toc-gloss">{c.data.record.office}, {c.data.record.house.split(',')[0]}</p>
+        </li>
+      ))}
+    </ol>
+    <div class="text">
+      <TurnTheLeaf prev={{ path: '/preface/', label: 'To the Reader' }} next={{ path: chapterPath(chapters[0]), label: 'Chapter I' }} />
+    </div>
+  </section>
+</Book>

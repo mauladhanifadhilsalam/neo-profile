@@ -1,0 +1,23 @@
+---
+number: 4
+title: 'Of Machines taught to See: Mangosteens, Skin, and Faces at a Door'
+description: June to July 2024. Computer-vision work for Daraya Software Solutions with TensorFlow, YOLOv8, EfficientNetB3 and OpenCV.
+years: MMXXIV
+epigraph:
+  text: The world is my representation.
+  by: Schopenhauer
+  work: The World as Will and Representation
+record:
+  office: Software Engineer
+  house: Daraya Software Solutions
+  place: Indonesia
+  term: June to July 2024, two months
+  instruments: [Python, TensorFlow, YOLOv8, EfficientNetB3, OpenCV, Telegram API]
+---
+import Sidenote from '../../components/Sidenote.astro';
+
+For two months in 2024 I left the back end for a different kind of problem: teaching machines to see. Daraya Software Solutions had three projects in computer vision, and I contributed to each.
+
+The first asked whether a mangosteen is ripe.<Sidenote n={1}>The mangosteen (<i lang="la">Garcinia mangostana</i>) shows its ripeness in its rind, which darkens from pale green through red to deep purple as the fruit matures.</Sidenote> We trained models with TensorFlow and YOLOv8 to answer from a photograph. The second classified diseases of the facial skin, building on EfficientNetB3, a network pre-trained on a large general collection of images and then taught the narrower task. The third was face recognition for a smart lock, written with OpenCV, which sent a notice through the Telegram API when it detected a face at the door.
+
+Schopenhauer opens his great work with the sentence “The world is my representation.” A vision model is that sentence made literal. It has no world, only the representation it has been trained to make of one, and the work lies in making that representation faithful: to the fruit, to the skin, to the face.
