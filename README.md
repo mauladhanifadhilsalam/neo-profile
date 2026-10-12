@@ -6,7 +6,7 @@ a Chronicle of his working life, Notes on particular pieces of work, a Tree of K
 
 Built with [Astro](https://astro.build) as a fully static site: no server, no tracking.
 Once GitHub Pages is switched on (see [Publishing](#publishing)), it is published at
-<https://altf4m88.github.io/neo-profile/>.
+<https://mauladhanifadhilsalam.github.io/neo-profile/>.
 
 ## Running it
 
