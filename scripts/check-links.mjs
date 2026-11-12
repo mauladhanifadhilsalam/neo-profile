@@ -1,9 +1,9 @@
 // Walk every page in dist/ and fail if an internal href or src points at nothing.
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { join, extname } from 'node:path';
+import { SITE_BASE as BASE } from './lib/site.mjs';
 
 const DIST = 'dist';
-const BASE = '/neo-profile/';
 
 async function* htmlFiles(dir) {
   for (const entry of await readdir(dir, { withFileTypes: true })) {

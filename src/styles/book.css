@@ -379,7 +379,9 @@ a.toc-row:hover .toc-t, a.toc-row:focus-visible .toc-t { text-decoration: underl
   padding: .06em .09em 0 0;
   color: var(--rubric);
 }
-.prose h3 {
+/* Section headings inside a Note are h2 (the Note's title is the h1); a titled piece set
+   under a part heading, as in Gedanken, is an h3. Both are set alike. */
+.prose h2, .prose h3 {
   margin: 2rem 0 .75rem;
   font-family: var(--display-sc);
   font-weight: 400;
@@ -388,7 +390,7 @@ a.toc-row:hover .toc-t, a.toc-row:focus-visible .toc-t { text-decoration: underl
   text-align: center;
   color: var(--rubric);
 }
-.prose h3 + p { text-indent: 0; }
+.prose h2 + p, .prose h3 + p { text-indent: 0; }
 .prose ul, .prose ol { margin: .75rem 0 1rem; padding-left: 1.4em; }
 .prose li + li { margin-top: .25rem; }
 .prose blockquote { margin: 1rem 1.5rem; font-style: italic; }

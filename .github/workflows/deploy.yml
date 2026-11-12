@@ -29,6 +29,7 @@ jobs:
       - run: npm run check
       - run: npm run build
       - run: npm run check:links
+      - run: npm run check:a11y
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
