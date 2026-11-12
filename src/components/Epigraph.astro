@@ -7,7 +7,7 @@ interface Props {
 }
 const { text, by, work, adapted = false } = Astro.props;
 ---
-<blockquote class="epigraph">
+<blockquote class="epigraph" data-reveal>
   <p>“{text}”<slot /></p>
   <footer>{adapted ? `After ${by}` : by}{work && <>, <cite>{work}</cite></>}</footer>
 </blockquote>

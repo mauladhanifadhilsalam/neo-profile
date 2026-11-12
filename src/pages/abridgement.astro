@@ -20,6 +20,7 @@ const skills = profile.knowledge.map((b) => ({ title: b.title, names: b.instrume
       <p class="contact">
         <a href={`mailto:${profile.email}`}>{profile.email}</a>
         <a href={profile.links.linkedin}>{profile.links.linkedin.replace('https://www.', '')}</a>
+        <a href={profile.links.github}>{profile.links.github.replace('https://', '')}</a>
         <span>{siteUrl}</span>
       </p>
     </header>

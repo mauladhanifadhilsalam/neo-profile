@@ -16,13 +16,13 @@ const firstPublished = notes.filter(isPublished)[0];
 >
   <section class="leaf" aria-labelledby="notes-title">
     <RunningHead right="Book II · Notes" />
-    <div class="contents-head">
+    <div class="contents-head" data-reveal="cascade">
       <p class="book-label">Book the Second</p>
       <h1 id="notes-title" class="book-title">Notes</h1>
       <p>A few pieces of the work, looked at closely: what the problem was, what was built, and what it taught.</p>
       <p class="fleuron" aria-hidden="true">❧</p>
     </div>
-    <ol class="toc">
+    <ol class="toc" data-reveal="cascade">
       {notes.map((n) => isPublished(n) ? (
         <li>
           <a class="toc-row" href={href(notePath(n))}><span class="toc-n">{toRoman(n.data.number)}.</span><span class="toc-t">{n.data.title}{n.data.subtitle && <>; <i>{n.data.subtitle}</i></>}</span><span class="leader" aria-hidden="true"></span><span class="toc-r">{n.data.house}</span></a>

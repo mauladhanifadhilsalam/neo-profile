@@ -81,12 +81,20 @@ export const profile = {
   email: 'fadhilmauladhani@gmail.com',
   links: {
     linkedin: 'https://www.linkedin.com/in/fadhil-mauladhani-501743192',
+    github: 'https://github.com/altf4m88',
+    /** Badges for the certificates listed under Honours & Laurels. */
+    credly: [
+      'https://www.credly.com/users/fadhil-mauladhani',
+      'https://www.credly.com/users/muhamad-fadhil-mauladhani',
+    ],
   },
   motto: {
     de: ['Die Gedanken sind frei, wer kann sie erraten?', 'Sie fliegen vorbei wie nächtliche Schatten …'],
     en: 'Thoughts are free; who can guess them? They fly past like shadows in the night …',
     source: 'German folk song',
   },
+  /** The figure behind the first honour, kept as a number for the title page's Argument. */
+  english: { test: 'TOEIC', score: 985, outOf: 990, year: 2021 },
   summary:
     'Back-end engineer from Bogor, Indonesia, shipping production code since January 2021. ' +
     'Three years on the back end of Kejar.id, a school-management platform (Laravel, PostgreSQL, ' +

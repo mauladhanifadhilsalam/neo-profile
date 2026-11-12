@@ -4,7 +4,7 @@ import Book from '../layouts/Book.astro';
 import Emblem from '../components/Emblem.astro';
 import RunningHead from '../components/RunningHead.astro';
 import { getChronicle, getNotes, chapterPath, notePath, isPublished } from '../lib/collections';
-import { href, toRoman, toWords } from '../lib/book';
+import { href, monthYear, toRoman, toWords } from '../lib/book';
 import { profile } from '../data/profile';
 
 const chapters = await getChronicle();
@@ -20,18 +20,36 @@ const parts = [
   return { ...part, right: count === 0 ? 'in preparation' : `${toWords(count)} ${part.unit[count === 1 ? 0 : 1]}` };
 });
 
+// The Argument: the book in four figures, all reckoned from the profile.
+const present = profile.experience[0];
+const first = profile.experience[profile.experience.length - 1];
+const [startYear, startMonth] = first.start.split('-').map(Number);
+const now = new Date();
+const yearsShipping = Math.floor(((now.getUTCFullYear() - startYear) * 12 + (now.getUTCMonth() + 1 - startMonth)) / 12);
+const houses = new Set(profile.experience.map((p) => p.organisation)).size;
+const instruments = profile.knowledge.reduce((sum, branch) => sum + branch.instruments.length, 0);
+const figures = [
+  { value: yearsShipping, label: 'years shipping production code', gloss: `since ${monthYear(first.start)}` },
+  { value: profile.english.score, label: `of ${profile.english.outOf} on the ${profile.english.test}`, gloss: `among the ten best in a national programme, ${profile.english.year}` },
+  { value: houses, label: 'houses served', gloss: `in ${toWords(profile.experience.length)} offices, from intern to full stack` },
+  { value: instruments, label: 'instruments', gloss: 'each entered in the Tree of Knowledge' },
+];
+
+/** A word of the title set letter by letter, so that each letter can be inked in its turn. */
+const letters = (word: string, from: number) => [...word].map((letter, i) => ({ letter, i: from + i }));
+
 const siteUrl = new URL(href('/'), Astro.site).toString();
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Person',
   name: profile.name,
   alternateName: profile.fullName,
-  jobTitle: profile.experience[0].role,
+  jobTitle: present.role,
   description: profile.summary,
   url: siteUrl,
   email: `mailto:${profile.email}`,
-  sameAs: [profile.links.linkedin],
-  worksFor: { '@type': 'Organization', name: profile.experience[0].organisation },
+  sameAs: [profile.links.linkedin, profile.links.github],
+  worksFor: { '@type': 'Organization', name: present.organisation },
   address: { '@type': 'PostalAddress', addressLocality: 'Bogor', addressRegion: 'West Java', addressCountry: 'ID' },
   alumniOf: profile.education.map((e) => ({ '@type': 'EducationalOrganization', name: e.institution })),
   knowsLanguage: ['en', 'id', 'su'],
@@ -43,50 +61,109 @@ const jsonLd = {
   section="title"
   jsonLd={jsonLd}
 >
-  <section class="leaf" id="title" aria-labelledby="book-title">
-    <div class="ribbon" aria-hidden="true"></div>
-    <div class="title-page">
-      <p class="fleuron settle" aria-hidden="true">❦</p>
-      <h1 id="book-title" class="settle d1">
-        <span class="t-big">Notes</span>
-        <span class="t-small">from the</span>
-        <span class="t-big">Back End</span>
-      </h1>
-      <div class="rule-double" aria-hidden="true"></div>
-      <p class="being settle d2">Being the Works, Studies &amp; Free Thoughts of</p>
-      <p class="author settle d2">{profile.name}<span class="author-full">{profile.fullName}</span></p>
-      <p class="tagline settle d3">a fellow <span lang="la">socii malorum</span> and cognitariat, tech-savvy literary romanticist</p>
-      <p class="visually-hidden">{profile.plainTitle} in Bogor, West Java, Indonesia.</p>
-      <div class="rule-thin" aria-hidden="true"></div>
-      <Emblem class="emblem settle d3" />
-      <div class="motto settle d4">
-        <p class="motto-de" lang="de">{profile.motto.de[0]}<br />{profile.motto.de[1]}</p>
-        <p class="motto-en">{profile.motto.en}</p>
+  <!-- The volume: a title page under a cloth cover, which scrolling opens. Without scripts, or
+       where less motion is asked for, it is a plain title leaf and the cover is never drawn. -->
+  <div class="cover-stage" id="title" data-cover>
+    <section class="volume" aria-labelledby="book-title">
+      <div class="tome">
+        <div class="backboard" aria-hidden="true"></div>
+        <div class="sheet">
+          <div class="recto">
+            <div class="recto-head">
+              <div class="ribbon" aria-hidden="true"></div>
+              <p class="fleuron ink" aria-hidden="true">❦</p>
+              <h1 id="book-title">
+                <span class="visually-hidden">Notes from the Back End</span>
+                <span class="t-big" aria-hidden="true">{letters('Notes', 0).map(({ letter, i }) => <span class="ltr" style={`--i:${i}`}>{letter}</span>)}</span>
+                <span class="t-small ink" style="--i:5" aria-hidden="true">from the</span>
+                <span class="t-big" aria-hidden="true"><span class="word">{letters('Back', 6).map(({ letter, i }) => <span class="ltr" style={`--i:${i}`}>{letter}</span>)}</span>{' '}<span class="word">{letters('End', 10).map(({ letter, i }) => <span class="ltr" style={`--i:${i}`}>{letter}</span>)}</span></span>
+              </h1>
+              <div class="rule-double rule-draw" aria-hidden="true"></div>
+              <p class="being ink" style="--i:15">Being the Works, Studies &amp; Free Thoughts of</p>
+              <p class="author ink" style="--i:17">{profile.name}<span class="author-full">{profile.fullName}</span></p>
+              <p class="office ink" style="--i:19">{profile.plainTitle} <span aria-hidden="true">·</span> Bogor, West Java</p>
+              <p class="tagline ink" style="--i:21">a fellow <span lang="la">socii malorum</span> and cognitariat, tech-savvy literary romanticist</p>
+            </div>
+            <div class="recto-foot">
+              <div class="rule-double rule-draw" aria-hidden="true"></div>
+              <p class="imprint ink" style="--i:24">Bogor, in the Province of West Java<br />Printed in the Year <span lang="la">{toRoman(now.getFullYear())}</span></p>
+              <p class="begin ink" style="--i:26"><a href={href('/preface/')}>Begin reading: To the Reader</a></p>
+              <p class="resume" id="resume" hidden>Your ribbon rests at <a id="resume-link" href={href('/')}>the Contents</a>.</p>
+            </div>
+          </div>
+
+          <div class="verso">
+            <div class="rule-thin" aria-hidden="true"></div>
+            <div class="bookplate">
+              <p class="bookplate-label" aria-hidden="true">Ex Libris</p>
+              <Emblem class="emblem" />
+              <div class="motto">
+                <p class="motto-de" lang="de">{profile.motto.de[0]}<br />{profile.motto.de[1]}</p>
+                <p class="motto-en">{profile.motto.en}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="board" aria-hidden="true">
+          <div class="board-frame">
+            <p class="board-fleuron">❦</p>
+            <p class="board-title"><span class="foil">Notes</span><span class="foil small">from the</span><span class="foil">Back End</span></p>
+            <Emblem class="emblem emblem-gilt" uid="stamp" decorative />
+            <p class="board-author foil">{profile.name}</p>
+            <p class="board-cue"><span>Scroll to open</span><svg viewBox="0 0 12 8" width="12" height="8"><path d="M1,1.5 L6,6.5 L11,1.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></p>
+          </div>
+          <div class="board-sheen"></div>
+        </div>
       </div>
-      <div class="rule-double" aria-hidden="true"></div>
-      <p class="imprint">Bogor, in the Province of West Java<br />Printed in the Year <span lang="la">{toRoman(new Date().getFullYear())}</span></p>
-      <p class="begin"><a href={href('/preface/')}>Begin reading: To the Reader</a></p>
-      <p class="resume" id="resume" hidden>Your ribbon rests at <a id="resume-link" href={href('/')}>the Contents</a>.</p>
+    </section>
+  </div>
+
+  <section class="leaf" id="argument" aria-labelledby="argument-h">
+    <RunningHead right="The Argument" />
+    <div class="contents-head" data-reveal>
+      <h2 id="argument-h">The Argument</h2>
+      <p class="fleuron" aria-hidden="true">❧</p>
+    </div>
+    <div class="text">
+      <p class="argument-text" data-reveal>{profile.summary}</p>
+    </div>
+    <dl class="figures" data-reveal="cascade">
+      {figures.map((f) => (
+        <div class="figure">
+          <dt class="figure-label">{f.label}<span class="figure-gloss">{f.gloss}</span></dt>
+          <dd class="figure-n"><span class="visually-hidden">{f.value}</span><span data-count={f.value} aria-hidden="true">{f.value}</span></dd>
+        </div>
+      ))}
+    </dl>
+    <div class="text" data-reveal>
+      <p class="at-present"><span class="sc">At present</span> {present.role} at {present.organisation}, {present.place}, since {monthYear(present.start)}.</p>
+      <div class="cv-actions">
+        <a class="button" href={href('/abridgement/')}>The Abridgement, a one-page CV</a>
+        <a class="button quiet" href={href('/correspondence/')}>Write to the author</a>
+        <a class="button quiet" href={profile.links.github} rel="me">GitHub</a>
+        <a class="button quiet" href={profile.links.linkedin} rel="me">LinkedIn</a>
+      </div>
     </div>
   </section>
 
   <section class="leaf" id="contents" aria-labelledby="contents-h">
     <RunningHead right="Contents" />
-    <div class="contents-head">
+    <div class="contents-head" data-reveal>
       <h2 id="contents-h">Contents</h2>
       <p class="fleuron" aria-hidden="true">❧</p>
     </div>
 
     <ol class="toc">
       <li>
-        <ol class="toc-plain">
+        <ol class="toc-plain" data-reveal="cascade">
           <li><a class="toc-row" href={href('/preface/')}><span class="toc-t">To the Reader</span><span class="leader" aria-hidden="true"></span><span class="toc-r">a preface</span></a></li>
         </ol>
       </li>
 
       <li>
-        <p class="toc-book-title"><a href={href('/chronicle/')}><span class="sc">Book I</span> <span>The Chronicle</span></a></p>
-        <ol class="toc-sub">
+        <p class="toc-book-title" data-reveal><a href={href('/chronicle/')}><span class="sc">Book I</span> <span>The Chronicle</span></a></p>
+        <ol class="toc-sub" data-reveal="cascade">
           {chapters.map((c) => (
             <li><a class="toc-row" href={href(chapterPath(c))}><span class="toc-n">{toRoman(c.data.number)}.</span><span class="toc-t">{c.data.title}</span><span class="leader" aria-hidden="true"></span><span class="toc-r">{c.data.years}</span></a></li>
           ))}
@@ -94,8 +171,8 @@ const jsonLd = {
       </li>
 
       <li>
-        <p class="toc-book-title"><a href={href('/notes/')}><span class="sc">Book II</span> <span>Notes</span></a></p>
-        <ol class="toc-sub">
+        <p class="toc-book-title" data-reveal><a href={href('/notes/')}><span class="sc">Book II</span> <span>Notes</span></a></p>
+        <ol class="toc-sub" data-reveal="cascade">
           {notes.map((n) => isPublished(n) ? (
             <li><a class="toc-row" href={href(notePath(n))}><span class="toc-n">{toRoman(n.data.number)}.</span><span class="toc-t">{n.data.title}</span><span class="leader" aria-hidden="true"></span><span class="toc-r">{n.data.house}</span></a></li>
           ) : (
@@ -105,15 +182,15 @@ const jsonLd = {
       </li>
 
       <li>
-        <p class="toc-book-title"><a href={href('/knowledge/')}><span class="sc">Book III</span> <span>The Tree of Knowledge</span></a></p>
-        <ol class="toc-sub">
+        <p class="toc-book-title" data-reveal><a href={href('/knowledge/')}><span class="sc">Book III</span> <span>The Tree of Knowledge</span></a></p>
+        <ol class="toc-sub" data-reveal="cascade">
           <li><a class="toc-row" href={href('/knowledge/')}><span class="toc-n"></span><span class="toc-t">Memory, Reason, Imagination &amp; the Mechanical Arts</span><span class="leader" aria-hidden="true"></span><span class="toc-r">{toWords(profile.knowledge.length)} branches</span></a></li>
         </ol>
       </li>
 
       <li>
-        <p class="toc-book-title"><a href={href('/gedanken/')}><span class="sc">Book IV</span> <span lang="de">Gedanken</span></a></p>
-        <ol class="toc-sub">
+        <p class="toc-book-title" data-reveal><a href={href('/gedanken/')}><span class="sc">Book IV</span> <span lang="de">Gedanken</span></a></p>
+        <ol class="toc-sub" data-reveal="cascade">
           {parts.map((p) => (
             <li><a class="toc-row" href={href(`/gedanken/#${p.kind}s`)}><span class="toc-n">{p.n}</span><span class="toc-t">{p.title}</span><span class="leader" aria-hidden="true"></span><span class="toc-r">{p.right}</span></a></li>
           ))}
@@ -121,7 +198,7 @@ const jsonLd = {
       </li>
 
       <li>
-        <ol class="toc-plain">
+        <ol class="toc-plain" data-reveal="cascade">
           <li><a class="toc-row" href={href('/honours/')}><span class="toc-t">Honours &amp; Laurels</span><span class="leader" aria-hidden="true"></span><span class="toc-r">{toWords(profile.honours.length)} honours, {toWords(profile.certificates.length)} certificates</span></a></li>
           <li><a class="toc-row" href={href('/correspondence/')}><span class="toc-t">Correspondence</span><span class="leader" aria-hidden="true"></span><span class="toc-r">by letter</span></a></li>
           <li><a class="toc-row" href={href('/colophon/')}><span class="toc-t">Colophon</span><span class="leader" aria-hidden="true"></span><span class="toc-r">of the making of this book</span></a></li>

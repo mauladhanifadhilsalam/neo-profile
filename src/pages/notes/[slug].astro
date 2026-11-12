@@ -35,7 +35,7 @@ const { epigraph, argument, subtitle } = entry.data;
   <article class="leaf has-notes" aria-labelledby="note-title">
     <RunningHead right="Book II · Notes" />
     <div class="text">
-      <header class="opening">
+      <header class="opening" data-reveal="cascade">
         <p class="book-label">Book the Second · Notes</p>
         <p class="chapter-num">Note {roman}</p>
         <h1 id="note-title">{entry.data.title}</h1>
@@ -49,7 +49,7 @@ const { epigraph, argument, subtitle } = entry.data;
         </Epigraph>
       )}
 
-      {argument && <p class="argument"><span class="sc">The Argument</span>{argument}</p>}
+      {argument && <p class="argument" data-reveal><span class="sc">The Argument</span>{argument}</p>}
 
       <div class="prose">
         <Content />

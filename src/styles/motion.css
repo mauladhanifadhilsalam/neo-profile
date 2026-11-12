@@ -1,0 +1,612 @@
+/* Notes from the Back End: how the book moves.
+
+   Three rules hold throughout.
+   1. Motion is an enhancement. Anything held back before it is revealed is held back only
+      under html.js, which the layout sets before first paint and withdraws if the scripts
+      never arrive. Without scripts the book is complete and still.
+   2. Readers who ask their system for less motion get none of it: every rule that moves
+      something sits inside a (prefers-reduced-motion: no-preference) query.
+   3. Scripts report, styles perform. A script only publishes a number (--p, --read, --mx)
+      or a class (.is-in, .is-open); what that looks like is decided here. */
+
+:root {
+  --spine-h: 3.25rem;
+  --read: 0;
+  --mx: 50vw;
+  --my: 30vh;
+  /* Book cloth and the gilt stamped into it. The cover is the same in daylight and lamplight. */
+  --cloth: #21392F;
+  --cloth-deep: #14241D;
+  --foil: #D9B866;
+  --foil-deep: #A07E38;
+  --foil-light: #FFF3C8;
+  --endpaper: #EADFCB;
+  /* A printed endpaper: the emblem's star, sown in gilt. */
+  --endpaper-stars: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><g fill='%23B08A3E' fill-opacity='.34'><path d='M11 5.5 L12.1 9.9 L16.5 11 L12.1 12.1 L11 16.5 L9.9 12.1 L5.5 11 L9.9 9.9 Z'/><path d='M33 29 L33.8 32.2 L37 33 L33.8 33.8 L33 37 L32.2 33.8 L29 33 L32.2 32.2 Z'/></g></svg>");
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --endpaper: #241D17; }
+}
+:root[data-theme="dark"] { --endpaper: #241D17; }
+
+@property --peek {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+
+/* ---------- How far through the leaf: a rubric hairline under the spine ---------- */
+.spine-read {
+  position: absolute;
+  inset: auto 0 -1px 0;
+  height: 2px;
+  background: var(--rubric);
+  transform: scaleX(var(--read));
+  transform-origin: 0 50%;
+}
+html:not(.js) .spine-read { display: none; }
+
+/* ---------- The owl ----------
+   Its eyelids and gaze are part of the drawing (book.css); only the moving of them is here. */
+
+@media (prefers-reduced-motion: no-preference) {
+  .owl-lid { animation: blink 7s infinite; }
+  .owl-lid:nth-of-type(2) { animation-delay: .03s; }
+  .owl-head { transition: transform .6s cubic-bezier(.3, 1.5, .5, 1); }
+  .emblem:hover .owl-head { transform: rotate(-10deg); }
+  .e-star { animation: twinkle 3.6s ease-in-out infinite; }
+  .e-star:nth-child(2n) { animation-delay: -1.3s; animation-duration: 4.4s; }
+  .e-star:nth-child(3n) { animation-delay: -2.4s; animation-duration: 2.9s; }
+  .lamp .flame { animation: flicker 2.6s ease-in-out infinite; }
+
+  @keyframes blink {
+    0%, 90%, 96%, 100% { transform: scaleY(0); }
+    93% { transform: scaleY(1); }
+  }
+  @keyframes twinkle {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(.45); }
+  }
+  @keyframes flicker {
+    0%, 100% { transform: scale(1, 1) rotate(0deg); }
+    22% { transform: scale(.94, 1.08) rotate(-2.5deg); }
+    47% { transform: scale(1.05, .95) rotate(2deg); }
+    71% { transform: scale(.97, 1.05) rotate(-1deg); }
+  }
+}
+
+/* ---------- Lamplight: a pool of candle-light that follows the hand ---------- */
+.lamplight { display: none; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .lamplight {
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+    background: radial-gradient(
+      circle 70vmax at var(--mx) var(--my),
+      rgba(255, 208, 140, .5) 0%,
+      rgba(255, 190, 120, .2) 18%,
+      rgba(128, 110, 90, 0) 42%,
+      rgba(0, 0, 0, .34) 100%
+    );
+    animation: lamplight 5.2s ease-in-out infinite;
+  }
+  html.js:root[data-theme="dark"] .lamplight { display: block; }
+  @media (prefers-color-scheme: dark) {
+    html.js:root:not([data-theme="light"]) .lamplight { display: block; }
+  }
+  @keyframes lamplight {
+    0%, 100% { opacity: 1; }
+    18% { opacity: .9; }
+    31% { opacity: .97; }
+    53% { opacity: .86; }
+    74% { opacity: .95; }
+  }
+}
+
+/* ---------- Revealed on arrival ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+
+  /* A single element rises into place; a cascade lets its children arrive one after another. */
+  html.js [data-reveal]:not([data-reveal="cascade"]) {
+    opacity: 0;
+    transform: translateY(.9rem);
+    transition: opacity .8s ease, transform .9s cubic-bezier(.2, .7, .2, 1);
+  }
+  html.js [data-reveal="cascade"] > * {
+    opacity: 0;
+    transform: translateY(.7rem);
+    transition: opacity .7s ease, transform .8s cubic-bezier(.2, .7, .2, 1);
+  }
+  html.js [data-reveal].is-in:not([data-reveal="cascade"]),
+  html.js [data-reveal="cascade"].is-in > * {
+    opacity: 1;
+    transform: none;
+    transition-delay: calc(var(--i, 0) * 70ms);
+  }
+  [data-reveal="cascade"] > :nth-child(2) { --i: 1; }
+  [data-reveal="cascade"] > :nth-child(3) { --i: 2; }
+  [data-reveal="cascade"] > :nth-child(4) { --i: 3; }
+  [data-reveal="cascade"] > :nth-child(5) { --i: 4; }
+  [data-reveal="cascade"] > :nth-child(6) { --i: 5; }
+  [data-reveal="cascade"] > :nth-child(7) { --i: 6; }
+  [data-reveal="cascade"] > :nth-child(8) { --i: 7; }
+  [data-reveal="cascade"] > :nth-child(9) { --i: 8; }
+  [data-reveal="cascade"] > :nth-child(n + 10) { --i: 9; }
+
+  /* The dotted leaders of a contents row are ruled from the title out to the page number. */
+  html.js [data-reveal="cascade"] .leader {
+    transform: translateY(-.32em) scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 1s cubic-bezier(.2, .7, .2, 1);
+  }
+  html.js [data-reveal="cascade"].is-in .leader {
+    transform: translateY(-.32em) scaleX(1);
+    transition-delay: calc(var(--i, 0) * 70ms + .2s);
+  }
+
+  /* Rules that are ruled: the Record's two lines, drawn from the left. */
+  html.js .record[data-reveal] {
+    transform: none;
+    border-color: transparent;
+    background:
+      linear-gradient(var(--ink), var(--ink)) 0 0 / 0% 1px no-repeat,
+      linear-gradient(var(--ink), var(--ink)) 0 100% / 0% 1px no-repeat;
+    transition: opacity .6s ease, background-size 1.1s cubic-bezier(.3, 0, .2, 1) .1s;
+  }
+  html.js .record[data-reveal].is-in { background-size: 100% 1px, 100% 1px; }
+
+  /* The signature's flourish waits until the reader reaches it. */
+  html.js .signature[data-reveal] .flourish { animation: none; stroke-dashoffset: 420; transition: stroke-dashoffset 2.2s ease-out .5s; }
+  html.js .signature[data-reveal].is-in .flourish { stroke-dashoffset: 0; }
+}
+
+/* Margin notes step in from the margin (only where they sit in the margin). */
+@media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+  html.js .sidenote {
+    opacity: 0;
+    transform: translateX(.9rem);
+    transition: opacity .9s ease .15s, transform .9s cubic-bezier(.2, .7, .2, 1) .15s;
+  }
+  html.js .sidenote.is-in { opacity: 1; transform: none; }
+}
+
+/* ---------- Plates engrave themselves ---------- */
+.t-leaf { transform-box: fill-box; transform-origin: 50% 50%; }
+@media (prefers-reduced-motion: no-preference) {
+  html.js .plate svg :is(rect, path, ellipse, circle, line, text) {
+    transition:
+      opacity .5s ease,
+      stroke-dashoffset 1s cubic-bezier(.4, 0, .2, 1),
+      transform .7s cubic-bezier(.3, 1.6, .5, 1);
+    transition-delay: calc(var(--i, 0) * 36ms);
+  }
+  html.js .plate:not(.is-in) svg :is(rect, path, ellipse, circle, line, text) { opacity: 0; transition-delay: 0s; }
+  html.js .plate.draws svg :is(.p-frame, .p-inner, .p-box, .p-arrow, .t-branch, .t-twig, .t-root) { stroke-dasharray: 1; }
+  html.js .plate.draws:not(.is-in) svg :is(.p-frame, .p-inner, .p-box, .p-arrow, .t-branch, .t-twig, .t-root) { stroke-dashoffset: 1; }
+  html.js .plate:not(.is-in) svg .t-leaf { transform: scale(0); }
+  html.js .plate figcaption { transition: opacity .8s ease .4s; }
+  html.js .plate:not(.is-in) figcaption { opacity: 0; }
+}
+
+/* ---------- The title page inks itself once the cover is open ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  html.js .cover-stage .ltr {
+    opacity: 0;
+    transform: translateY(.16em) scale(1.1);
+    filter: blur(5px);
+    transition: opacity .55s ease, transform .75s cubic-bezier(.2, .8, .2, 1), filter .6s ease;
+  }
+  html.js .cover-stage .ink {
+    opacity: 0;
+    filter: blur(2.5px);
+    transition: opacity .9s ease, filter .9s ease;
+  }
+  html.js .cover-stage .rule-draw {
+    transform: scaleX(0);
+    transition: transform 1s cubic-bezier(.3, 0, .2, 1);
+  }
+  html.js .cover-stage.is-open :is(.ltr, .ink) {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition-delay: calc(var(--i, 0) * 55ms + .15s);
+  }
+  html.js .cover-stage.is-open .rule-draw { transform: none; transition-delay: .85s; }
+}
+
+/* ---------- The binding: a book that scrolling opens ----------
+   The volume is pinned while the reader scrolls through --open-dist of empty stage beneath it.
+   scripts/cover.ts turns that stretch into --p, from 0 (shut) to 1 (open).
+   A browser that lacks any of the three things the binding rests on keeps the plain title leaf. */
+@media (prefers-reduced-motion: no-preference) and (min-height: 34rem) {
+  @supports (height: 1svh) and (container-type: size) and (overflow: clip) {
+    html.js main.book { overflow-x: clip; }
+    html.js .cover-stage {
+      --p: 0;
+      --tilt-x: 0;
+      --tilt-y: 0;
+      --sheen: .5;
+      --lip: 7px;                                               /* how far the boards stand proud of the pages */
+      --stick: calc(var(--spine-h) + 1rem + var(--lip));
+      --board-h: calc(100svh - var(--stick) - 1rem + var(--lip));
+      --open-dist: 95svh;
+    }
+    html.js .cover-stage::after { content: ""; display: block; height: var(--open-dist); }
+    html.js .volume {
+      position: sticky;
+      top: var(--stick);
+      perspective: 150rem;
+      perspective-origin: 50% calc(var(--board-h) / 2);
+    }
+    html.js .tome {
+      transform-style: preserve-3d;
+      transform:
+        rotateX(calc(var(--tilt-y) * (1 - var(--p)) * -2deg))
+        rotateY(calc(var(--tilt-x) * (1 - var(--p)) * 3.5deg));
+    }
+
+    /* On a narrow screen the title leaf is taller than the window. While the book is shut,
+       only as much of it as the cover hides is shown; the rest unrolls as it opens. */
+    html.js .sheet {
+      clip-path: inset(-3rem -3rem calc(100% - var(--board-h) + 2 * var(--lip)) -3rem);
+      transition: clip-path .5s ease, background-color .4s ease;
+    }
+    html.js .backboard {
+      display: block;
+      position: absolute;
+      inset: calc(var(--lip) * -1);
+      background: var(--cloth-deep);
+      border-radius: 3px;
+      box-shadow: 0 1.75rem 3rem -1.5rem rgba(30, 18, 6, .75);
+      clip-path: inset(-4rem -4rem calc(100% - var(--board-h)) -4rem);
+      transition: clip-path .5s ease;
+    }
+    html.js .cover-stage.is-open :is(.sheet, .backboard) { clip-path: inset(-4rem); }
+    /* The shadow the lifting cover throws across the page beneath it. */
+    html.js .sheet::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(90deg, rgba(20, 12, 4, .5), rgba(20, 12, 4, 0) 75%);
+      opacity: calc(1 - var(--p));
+    }
+
+    /* The front board */
+    html.js .board {
+      display: block;
+      position: absolute;
+      z-index: 3;
+      top: calc(var(--lip) * -1);
+      left: calc(var(--lip) * -1);
+      right: calc(var(--lip) * -1);
+      height: min(calc(100% + 2 * var(--lip)), var(--board-h));
+      container-type: size;
+      overflow: hidden;
+      cursor: pointer;
+      color: var(--foil);
+      background:
+        radial-gradient(130% 100% at 22% 8%, rgba(255, 255, 255, .09), rgba(255, 255, 255, 0) 55%),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, .03) 0 1px, rgba(255, 255, 255, 0) 1px 3px),
+        repeating-linear-gradient(90deg, rgba(0, 0, 0, .09) 0 1px, rgba(0, 0, 0, 0) 1px 3px),
+        var(--cloth);
+      border-radius: 2px 5px 5px 2px;
+      box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, .45),
+        inset 1.15rem 0 .8rem -.75rem rgba(0, 0, 0, .65),
+        inset 1.3rem 0 0 -1.2rem rgba(255, 255, 255, .07);
+      transform-origin: 0 50%;
+      transform: rotateY(calc(var(--p) * -180deg + var(--peek))) translateZ(1px);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    /* The board darkens as it turns away from the light. */
+    html.js .board::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: #000;
+      opacity: calc(var(--p) * 1.1);
+    }
+    /* A hint, once, that the cover lifts. It is added to whatever the scroll has already turned,
+       so a reader who starts scrolling during the hint sees no jump. */
+    html.js .cover-stage.peeks { animation: peek 2.2s cubic-bezier(.45, 0, .25, 1) 1.2s 1 both; }
+    @keyframes peek {
+      0%, 100% { --peek: 0deg; }
+      42% { --peek: -13deg; }
+    }
+
+    html.js .board-frame {
+      position: absolute;
+      inset: clamp(.75rem, 4cqw, 1.5rem);
+      border: 2px solid var(--foil);
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+      justify-items: center;
+      align-items: center;
+      gap: clamp(.4rem, 2.2cqh, 1.25rem);
+      padding: clamp(1rem, 5cqh, 2.75rem) .75rem clamp(.9rem, 3.5cqh, 1.75rem);
+      text-align: center;
+    }
+    html.js .board-frame::before {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border: 1px solid var(--foil);
+      opacity: .75;
+      pointer-events: none;
+    }
+    html.js .board-frame p { margin: 0; }
+    .board-fleuron { font-size: clamp(1.1rem, 4cqh, 1.7rem); line-height: 1; }
+    .board-title {
+      display: grid;
+      gap: .08em;
+      font-family: var(--display);
+      font-size: min(13.6cqw, 10cqh, 5.4rem);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      line-height: .95;
+    }
+    .board-title .small { font-size: .25em; font-style: italic; text-transform: none; letter-spacing: .08em; line-height: 1.5; }
+    .board-author {
+      font-family: var(--display-sc);
+      font-size: min(5.4cqw, 3.6cqh, 1.6rem);
+      letter-spacing: .2em;
+    }
+    .board .emblem-gilt { width: auto; height: 100%; max-height: min(46cqh, 60cqw, 17rem); min-height: 0; margin: 0; aspect-ratio: 1; }
+    /* Gilt: a band of light slides across the stamping as the pointer moves. */
+    .foil {
+      background: linear-gradient(105deg, var(--foil-deep) 0%, var(--foil) 28%, var(--foil-light) 50%, var(--foil) 72%, var(--foil-deep) 100%);
+      background-size: 240% 100%;
+      background-position: calc((1 - var(--sheen)) * 100%) 0;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .board-sheen {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(105deg, rgba(255, 244, 214, 0) 35%, rgba(255, 244, 214, .13) 50%, rgba(255, 244, 214, 0) 65%);
+      background-size: 240% 100%;
+      background-position: calc((1 - var(--sheen)) * 100%) 0;
+    }
+    .board-cue {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      font-family: var(--display-sc);
+      font-size: clamp(.8rem, 2.6cqh, .98rem);
+      letter-spacing: .24em;
+      opacity: calc(1 - var(--p) * 8);
+    }
+    .board-cue svg { animation: cue 1.8s ease-in-out infinite; }
+    @keyframes cue {
+      0%, 100% { transform: translateY(-2px); }
+      50% { transform: translateY(3px); }
+    }
+
+    /* The emblem as stamped in gilt on cloth: every line gilt, every ground the cloth. */
+    .emblem-gilt :is(.e-rim, .e-rim-thin, .e-beads, .e-field-ring, .e-line) { stroke: var(--foil); }
+    .emblem-gilt :is(.e-legend, .e-moon, .e-ink, .e-glint) { fill: var(--foil); }
+    .emblem-gilt .e-star { fill: var(--foil); opacity: 1; }
+    .emblem-gilt .e-field { fill: rgba(0, 0, 0, .16); stroke: var(--foil); }
+    .emblem-gilt :is(.e-under, .e-pupil) { fill: var(--cloth); }
+    .emblem-gilt .e-hatch { fill: rgba(217, 184, 102, .14); stroke: var(--foil); }
+    .emblem-gilt .e-cross { fill: rgba(217, 184, 102, .34); stroke: var(--foil); }
+    .emblem-gilt .e-disc { fill: var(--cloth); stroke: var(--foil); }
+    .emblem-gilt .e-eye { fill: var(--foil); stroke: none; }
+    .emblem-gilt .owl-lid { fill: var(--cloth); stroke: var(--foil); }
+  }
+}
+
+/* Wide enough for two pages: the book opens into a spread. The front board turns over the
+   spine to lie on the left, shewing its bookplate, and the title page lies on the right. */
+@media (prefers-reduced-motion: no-preference) and (min-height: 37rem) and (min-width: 62rem) {
+  @supports (height: 1svh) and (container-type: size) and (overflow: clip) {
+    html.js .volume {
+      max-width: min(72rem, 100vw - 4rem);
+      perspective-origin: 50% 50%;
+    }
+    html.js .tome {
+      transform:
+        translateX(calc((1 - var(--p)) * -25%))
+        rotateX(calc(var(--tilt-y) * (1 - var(--p)) * -2deg))
+        rotateY(calc(var(--tilt-x) * (1 - var(--p)) * 3.5deg));
+    }
+    html.js .sheet {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      justify-items: stretch;
+      gap: 0;
+      padding: 0;
+      min-height: min(46rem, calc(var(--board-h) - 2 * var(--lip)));
+      background: none;
+      box-shadow: none;
+      transform-style: preserve-3d;
+    }
+    html.js .sheet::after { content: none; }
+    /* Nothing is clipped in a spread: a clip would flatten the turning board into the page. */
+    html.js .cover-stage :is(.sheet, .backboard) { clip-path: none; }
+    html.js .backboard { left: 50%; border-radius: 2px 5px 5px 2px; }
+    html.js .board { left: 50%; height: calc(100% + 2 * var(--lip)); }
+
+    /* Recto: the title page */
+    html.js .recto {
+      position: relative;
+      grid-column: 2;
+      grid-row: 1;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      justify-items: center;
+      gap: clamp(.5rem, 2svh, 1.4rem);
+      min-width: 0;
+      padding: clamp(.8rem, 3.6svh, 3rem) clamp(1.5rem, 3.5vw, 3.25rem) clamp(.8rem, 3.2svh, 2.5rem);
+      /* The title page must fit the window, cover and all, on a short laptop as on a tall
+         monitor: its type is set in ems of a size that follows the window's height. */
+      font-size: min(1.2rem, 2.35svh);
+      background: var(--grain), var(--paper);
+      /* the fore-edge: a few leaves showing beyond the title page */
+      box-shadow: 2px 0 0 -1px var(--hairline), 4px 0 0 -1px var(--paper), 5px 0 0 -1px var(--hairline);
+      container-type: inline-size;
+      transition: background-color .4s ease;
+    }
+    /* The shadow of the lifting cover fades as the cover leaves; the gutter's own shadow stays. */
+    html.js .recto::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(20, 12, 4, calc(.5 * (1 - var(--p)))), rgba(20, 12, 4, 0) 75%),
+        linear-gradient(90deg, rgba(20, 12, 4, .26), rgba(20, 12, 4, 0) 3.5rem);
+    }
+    html.js .recto-head, html.js .recto-foot { position: relative; gap: clamp(.4rem, 1.7svh, 1.1rem); }
+    html.js .recto-head { order: 0; align-content: center; padding-top: 0; }
+    html.js .recto-foot { order: 0; }
+    html.js .recto .fleuron { font-size: 1.35em; }
+    html.js .recto .t-big { font-size: min(16.4cqw, 4.35em); }
+    html.js .recto .t-small { font-size: 1.1em; }
+    html.js .recto .being { font-size: .96em; }
+    html.js .recto .author { font-size: min(6.2cqw, 1.58em); }
+    html.js .recto .office { font-size: .86em; }
+    html.js .recto .tagline { font-size: 1em; max-width: 21em; }
+    html.js .recto .imprint { margin-top: 0; font-size: .84em; }
+    html.js .recto .begin { margin-top: 0; font-size: 1em; }
+    html.js .recto .resume { font-size: .84em; }
+    html.js .recto .ribbon { top: -7px; left: clamp(1.1rem, 8cqw, 2.5rem); height: min(5.5rem, 11svh); }
+
+    /* Verso: the inside of the front board, with the bookplate pasted down */
+    html.js .verso {
+      position: relative;
+      order: 0;
+      grid-column: 1;
+      grid-row: 1;
+      align-content: center;
+      margin: calc(var(--lip) * -1) 0 calc(var(--lip) * -1) calc(var(--lip) * -1);
+      width: auto;
+      padding: calc(var(--lip) + clamp(1.25rem, 4vh, 2.75rem)) clamp(1.25rem, 3vw, 2.75rem) calc(var(--lip) + clamp(1.25rem, 4vh, 2.75rem)) calc(var(--lip) + clamp(1.25rem, 3vw, 2.75rem));
+      background: var(--cloth-deep);
+      border-radius: 5px 2px 2px 5px;
+      box-shadow: 0 1.75rem 3rem -1.5rem rgba(30, 18, 6, .75);
+      transform-origin: 100% 50%;
+      transform: rotateY(calc((1 - var(--p)) * 180deg + var(--peek))) translateZ(1px);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    /* the endpaper */
+    html.js .verso::before {
+      content: "";
+      position: absolute;
+      inset: var(--lip) 0 var(--lip) var(--lip);
+      background:
+        linear-gradient(270deg, rgba(20, 12, 4, .26), rgba(20, 12, 4, 0) 3.5rem),
+        var(--endpaper-stars),
+        var(--endpaper);
+      transition: background-color .4s ease;
+    }
+    /* the inside of the board comes into the light as it turns over */
+    html.js .verso::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: #000;
+      opacity: calc((1 - var(--p)) * 1.3 - .08);
+      border-radius: inherit;
+    }
+    html.js .verso .rule-thin { display: none; }
+    html.js .bookplate {
+      position: relative;
+      width: min(100%, 24rem);
+      gap: clamp(.5rem, 1.8vh, 1rem);
+      padding: clamp(1rem, 3.2vh, 1.9rem) clamp(1rem, 2vw, 1.75rem) clamp(1.1rem, 3.4vh, 2rem);
+      background: var(--grain), var(--paper);
+      border: 1px solid var(--ink);
+      outline: 1px solid var(--ink);
+      outline-offset: -6px;
+      box-shadow: 0 1px 0 rgba(0, 0, 0, .08), 0 .5rem 1rem -.6rem rgba(40, 24, 8, .5);
+      transition: background-color .4s ease;
+    }
+    html.js .bookplate-label {
+      display: block;
+      margin: 0;
+      font-family: var(--display-sc);
+      font-size: 1rem;
+      letter-spacing: .34em;
+      text-indent: .34em;
+      color: var(--rubric);
+    }
+    html.js .bookplate .emblem { width: min(13.5rem, 62%, 28svh); margin-block: 0; }
+    html.js .bookplate .motto { margin: 0; gap: .4rem; }
+    html.js .bookplate .motto-de { font-size: min(1.4rem, 1.75vw, 3.1svh); line-height: 1.35; }
+    html.js .bookplate .motto-en { font-size: min(.92rem, 2.3svh); line-height: 1.4; }
+  }
+}
+
+/* ---------- Turning the leaf: moving between pages ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+
+  /* The spine stays where it is; only the leaf beneath it turns. */
+  .spine { view-transition-name: spine; }
+  ::view-transition-group(spine) { z-index: 3; }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    mix-blend-mode: normal;
+    transform-origin: 0 50%;
+    animation-duration: .72s;
+    animation-timing-function: cubic-bezier(.5, 0, .2, 1);
+    animation-fill-mode: both;
+    backface-visibility: hidden;
+  }
+  /* Forward: the old leaf lifts from its right edge and turns over to the left. */
+  ::view-transition-old(root) { z-index: 2; animation-name: leaf-turns-away; }
+  ::view-transition-new(root) { z-index: 1; animation-name: leaf-comes-to-light; }
+  /* Back: the earlier leaf turns down from the left, over the one being left. */
+  html:active-view-transition-type(back)::view-transition-old(root) { z-index: 1; animation-name: leaf-falls-to-shade; }
+  html:active-view-transition-type(back)::view-transition-new(root) { z-index: 2; animation-name: leaf-turns-back; }
+
+  @keyframes leaf-turns-away {
+    from { transform: perspective(220vmax) rotateY(0deg); filter: brightness(1); }
+    to { transform: perspective(220vmax) rotateY(-90deg); filter: brightness(.62); }
+  }
+  @keyframes leaf-turns-back {
+    from { transform: perspective(220vmax) rotateY(-90deg); filter: brightness(.62); }
+    to { transform: perspective(220vmax) rotateY(0deg); filter: brightness(1); }
+  }
+  @keyframes leaf-comes-to-light {
+    from { filter: brightness(.7); }
+    to { filter: brightness(1); }
+  }
+  @keyframes leaf-falls-to-shade {
+    from { filter: brightness(1); }
+    to { filter: brightness(.7); }
+  }
+
+  /* Lighting or snuffing the lamp is the same machinery put to another use:
+     scripts/lamp.ts opens a circle of the new light from the flame. */
+  html.lamp-turning .spine { view-transition-name: none; }
+  html.lamp-turning *, html.lamp-turning *::before, html.lamp-turning *::after { transition: none !important; }
+  html.lamp-turning::view-transition-old(root),
+  html.lamp-turning::view-transition-new(root) { animation: none; transform: none; filter: none; }
+  html.lamp-turning[data-lamp-to="dark"]::view-transition-old(root) { z-index: 1; }
+  html.lamp-turning[data-lamp-to="dark"]::view-transition-new(root) { z-index: 2; }
+  html.lamp-turning[data-lamp-to="light"]::view-transition-old(root) { z-index: 2; }
+  html.lamp-turning[data-lamp-to="light"]::view-transition-new(root) { z-index: 1; }
+}
+
+/* ---------- Small courtesies ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .turn a span, .begin a { transition: letter-spacing .35s ease; }
+  .turn .next:hover span, .begin a:hover { letter-spacing: .02em; }
+  .button { transition: filter .2s ease, transform .2s ease, border-color .2s ease, color .2s ease; }
+  .button:active { transform: translateY(1px); }
+  .toc-row .toc-n { transition: transform .3s ease; }
+  a.toc-row:hover .toc-n { transform: translateX(.2rem); }
+}

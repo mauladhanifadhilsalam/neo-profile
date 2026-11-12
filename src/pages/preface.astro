@@ -15,12 +15,12 @@ import { profile } from '../data/profile';
   <article class="leaf has-notes" aria-labelledby="preface-title">
     <RunningHead right="To the Reader" />
     <div class="text">
-      <header class="opening">
+      <header class="opening" data-reveal="cascade">
         <p class="book-label">A Preface</p>
         <h1 id="preface-title">To the Reader</h1>
       </header>
 
-      <p class="preface-line">A fellow <span lang="la">socii malorum</span><Sidenote n={1}>Schopenhauer proposed that the fitting way to address one another is not “Sir” or “Monsieur” but “fellow-sufferer”: <i lang="la">socî malorum</i>, <i lang="fr">compagnon de misères</i>.</Sidenote> and cognitariat,<Sidenote n={2}>The cognitariat: in later Marxist writing, the proletariat of knowledge workers, who sell their minds by the hour as the factory hand once sold his arms.</Sidenote> tech-savvy literary romanticist.</p>
+      <p class="preface-line" data-reveal>A fellow <span lang="la">socii malorum</span><Sidenote n={1}>Schopenhauer proposed that the fitting way to address one another is not “Sir” or “Monsieur” but “fellow-sufferer”: <i lang="la">socî malorum</i>, <i lang="fr">compagnon de misères</i>.</Sidenote> and cognitariat,<Sidenote n={2}>The cognitariat: in later Marxist writing, the proletariat of knowledge workers, who sell their minds by the hour as the factory hand once sold his arms.</Sidenote> tech-savvy literary romanticist.</p>
 
       <div class="prose">
         <p>That is the line I put on every profile, and this book is an attempt to explain it. I earn my living as a back-end engineer in Bogor, building the parts of software that nobody sees. I give the rest of my attention to Dostoevsky and Tolstoy, to Nietzsche, Marx and Schopenhauer, and, beside them, to Shakespeare.</p>
@@ -29,7 +29,7 @@ import { profile } from '../data/profile';
         <p>Read it in order, or open it anywhere. Either way, read slowly.</p>
       </div>
 
-      <div class="signature">
+      <div class="signature" data-reveal>
         <span class="signature-name">{profile.name}</span>
         <svg viewBox="0 0 220 30" aria-hidden="true"><path class="flourish" d="M6,18 C40,4 70,28 104,16 S168,6 214,14"></path></svg>
         <span class="signature-place">Bogor, West Java</span>

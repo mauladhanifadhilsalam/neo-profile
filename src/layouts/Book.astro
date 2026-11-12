@@ -8,11 +8,18 @@ import '@fontsource/im-fell-english/400-italic.css';
 import '@fontsource/im-fell-english-sc/400.css';
 import '@fontsource/unifrakturmaguntia/400.css';
 import '../styles/book.css';
+import '../styles/motion.css';
 import '../styles/print.css';
+
+// The faces every leaf opens with, fetched ahead of the stylesheet so the first words are set in them.
+import fellUrl from '@fontsource/im-fell-english/files/im-fell-english-latin-400-normal.woff2?url';
+import fellScUrl from '@fontsource/im-fell-english-sc/files/im-fell-english-sc-latin-400-normal.woff2?url';
+import garamondUrl from '@fontsource/eb-garamond/files/eb-garamond-latin-400-normal.woff2?url';
 
 import SvgDefs from '../components/SvgDefs.astro';
 import Spine, { type Section } from '../components/Spine.astro';
 import { href } from '../lib/book';
+import { getLeafOrder } from '../lib/collections';
 import { profile } from '../data/profile';
 
 interface Props {
@@ -32,6 +39,8 @@ const fullTitle = title ? `${title} · ${bookName}` : `${bookName} · ${profile.
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL(href('/og.png'), Astro.site);
 const ld = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
+// Every leaf in reading order, so that a turn of the leaf knows which way to turn.
+const leaves = (await getLeafOrder()).map((path) => href(path));
 ---
 <!doctype html>
 <html lang="en">
@@ -47,6 +56,9 @@ const ld = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
     <link rel="icon" href={href('/favicon.svg')} type="image/svg+xml" />
     <link rel="sitemap" href={href('/sitemap-index.xml')} />
     <link rel="alternate" type="application/json" href={href('/cv.json')} title="Machine-readable edition" />
+    <link rel="preload" href={fellUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={fellScUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={garamondUrl} as="font" type="font/woff2" crossorigin />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={bookName} />
@@ -58,13 +70,35 @@ const ld = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <script is:inline>
-      // Restore the reader's lamp before first paint, so the page never flashes the wrong paper.
+    <script is:inline define:vars={{ leaves }}>
+      // Runs before first paint. Everything here is small, and nothing here may fail loudly.
       (function () {
+        var root = document.documentElement;
+
+        // Restore the reader's lamp, so the page never flashes the wrong paper.
         try {
           var t = localStorage.getItem('nftbe-lamp');
-          if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+          if (t === 'dark' || t === 'light') root.setAttribute('data-theme', t);
         } catch (e) {}
+
+        // Motion is an enhancement: the styles that hold things back before they are revealed
+        // apply only under .js, and .js is withdrawn if the script that reveals them never arrives.
+        root.classList.add('js');
+        setTimeout(function () {
+          if (!root.classList.contains('motion-ready')) root.classList.remove('js');
+        }, 4000);
+
+        // Turning the leaf: a leaf earlier in the book turns back, a later one turns forward.
+        window.addEventListener('pagereveal', function (event) {
+          try {
+            var nav = /** @type {any} */ (window).navigation;
+            var activation = nav && nav.activation;
+            if (!event.viewTransition || !activation || !activation.from || !activation.from.url) return;
+            var from = leaves.indexOf(new URL(activation.from.url).pathname);
+            var to = leaves.indexOf(location.pathname);
+            if (from > -1 && to > -1 && to < from) event.viewTransition.types.add('back');
+          } catch (e) {}
+        });
       })();
     </script>
     {ld && <script type="application/ld+json" set:html={ld} />}
@@ -87,56 +121,10 @@ const ld = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
       <p class="ru" lang="ru">«Рукописи не горят.»</p>
       <p>Manuscripts don’t burn. Bulgakov, <cite>The Master and Margarita</cite></p>
     </footer>
+    <div class="lamplight" aria-hidden="true"></div>
 
     <script>
-      const root = document.documentElement;
-      const LAMP_KEY = 'nftbe-lamp';
-      const RIBBON_KEY = 'nftbe-ribbon';
-
-      // The lamp: Daylight or Lamplight, remembered per reader.
-      const lamp = document.getElementById('lamp');
-      const lampLabel = document.getElementById('lamp-label');
-      const media = window.matchMedia('(prefers-color-scheme: dark)');
-      const isDark = () => {
-        const t = root.getAttribute('data-theme');
-        if (t === 'dark') return true;
-        if (t === 'light') return false;
-        return media.matches;
-      };
-      const syncLamp = () => {
-        const dark = isDark();
-        lamp?.setAttribute('aria-pressed', String(dark));
-        if (lampLabel) lampLabel.textContent = dark ? 'Snuff the lamp' : 'Light the lamp';
-      };
-      lamp?.addEventListener('click', () => {
-        const next = isDark() ? 'light' : 'dark';
-        root.setAttribute('data-theme', next);
-        try { localStorage.setItem(LAMP_KEY, next); } catch {}
-        syncLamp();
-      });
-      media.addEventListener('change', syncLamp);
-      syncLamp();
-
-      // The ribbon: remember the last chapter or Note opened, and offer it on the title page.
-      const ribbonTitle = document.body.dataset.ribbon;
-      if (ribbonTitle) {
-        try { localStorage.setItem(RIBBON_KEY, JSON.stringify({ path: location.pathname, title: ribbonTitle })); } catch {}
-      }
-      const resume = document.getElementById('resume');
-      const resumeLink = document.getElementById('resume-link');
-      if (resume && resumeLink) {
-        try {
-          const saved = JSON.parse(localStorage.getItem(RIBBON_KEY) ?? 'null');
-          if (saved && typeof saved.path === 'string' && typeof saved.title === 'string' && saved.path.startsWith('/') && saved.path !== location.pathname) {
-            resumeLink.setAttribute('href', saved.path);
-            resumeLink.textContent = saved.title;
-            resume.hidden = false;
-          }
-        } catch {}
-      }
-
-      console.log('%cDie Gedanken sind frei.', 'font-family: Georgia, serif; font-size: 16px; font-style: italic;');
-      console.log(`Hail, fellow artificer. A machine-readable edition of this book waits at ${document.body.dataset.cv}`);
+      import '../scripts/book';
     </script>
   </body>
 </html>

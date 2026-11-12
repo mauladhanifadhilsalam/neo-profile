@@ -13,12 +13,12 @@ import { toRoman } from '../lib/book';
   <article class="leaf" aria-labelledby="honours-title">
     <RunningHead right="Honours & Laurels" />
     <div class="text">
-      <header class="opening">
+      <header class="opening" data-reveal="cascade">
         <p class="book-label">Back Matter</p>
         <h1 id="honours-title">Honours &amp; Laurels</h1>
       </header>
 
-      <ol class="laurels">
+      <ol class="laurels" data-reveal="cascade">
         {profile.honours.map((h) => (
           <li>
             <span class="year"><span lang="la">{toRoman(h.year)}</span><span class="visually-hidden"> ({h.year})</span></span>
@@ -30,7 +30,7 @@ import { toRoman } from '../lib/book';
       </ol>
 
       <h2 class="section-title">Certificates</h2>
-      <table class="ledger">
+      <table class="ledger" data-reveal>
         <thead>
           <tr><th scope="col">Year</th><th scope="col">Certificate</th><th scope="col">Issuer</th></tr>
         </thead>
@@ -44,9 +44,10 @@ import { toRoman } from '../lib/book';
           ))}
         </tbody>
       </table>
+      <p class="ledger-note">The badges are kept at Credly: {profile.links.credly.map((url, i) => <>{i > 0 && ', '}<a href={url} rel="me">{url.replace('https://www.', '')}</a></>)}.</p>
 
       <h2 class="section-title">Tongues</h2>
-      <ul class="tongues">
+      <ul class="tongues" data-reveal="cascade">
         {profile.languages.map((l) => (
           <li><span class="name">{l.name}</span><span class="level">{l.level}</span></li>
         ))}

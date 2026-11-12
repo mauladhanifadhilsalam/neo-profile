@@ -12,7 +12,7 @@ import { profile } from '../data/profile';
   <article class="leaf" aria-labelledby="correspondence-title">
     <RunningHead right="Correspondence" />
     <div class="text">
-      <header class="opening">
+      <header class="opening" data-reveal="cascade">
         <p class="book-label">Back Matter</p>
         <h1 id="correspondence-title">Correspondence</h1>
       </header>
@@ -51,6 +51,10 @@ import { profile } from '../data/profile';
         <div class="row">
           <span class="label">By LinkedIn</span>
           <a class="value" href={profile.links.linkedin} rel="me">{profile.links.linkedin.replace('https://www.', '')}</a>
+        </div>
+        <div class="row">
+          <span class="label">By GitHub</span>
+          <a class="value" href={profile.links.github} rel="me">{profile.links.github.replace('https://', '')}</a>
         </div>
         <div class="row">
           <span class="label">From</span>

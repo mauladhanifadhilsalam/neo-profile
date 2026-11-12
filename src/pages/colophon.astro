@@ -26,7 +26,7 @@ if (!impression) {
   <article class="leaf" aria-labelledby="colophon-title">
     <RunningHead right="Colophon" />
     <div class="text colophon-text">
-      <header class="opening">
+      <header class="opening" data-reveal="cascade">
         <p class="book-label">Back Matter</p>
         <h1 id="colophon-title">Colophon</h1>
         <p class="subtitle">Of the making of this book</p>
@@ -39,6 +39,8 @@ if (!impression) {
         <dd>Daylight: parchment, iron-gall ink, rubric red and gilt. Lamplight: a walnut desk by candle.</dd>
         <dt>Emblem</dt>
         <dd>The owl of Minerva on an olive branch beneath a crescent moon, ringed by the motto <i lang="de">Die Gedanken sind frei</i>.</dd>
+        <dt>Motion</dt>
+        <dd>The cover opens as the reader scrolls, leaves turn between pages, plates engrave themselves and the owl keeps watch, all by hand-written CSS and a few hundred lines of TypeScript, with no animation library. Readers who ask their system for less motion, and browsers without scripts, are given the same book lying still.</dd>
         <dt>Press</dt>
         <dd>Composed with Astro as a static book of plain pages, with no tracking and no server, and printed on GitHub Pages.</dd>
         <dt>Printed</dt>

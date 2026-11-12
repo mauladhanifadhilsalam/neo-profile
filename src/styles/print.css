@@ -18,7 +18,7 @@
     color-scheme: light;
   }
   body { background: #fff; font-size: 11.5pt; line-height: 1.5; }
-  .spine, .colophon, .skip, .ribbon, .turn, .resume, .cv-actions, .seal-row, .lamp { display: none !important; }
+  .spine, .colophon, .skip, .ribbon, .turn, .resume, .cv-actions, .seal-row, .lamp, .lamplight, .board, .backboard, .tree-caption { display: none !important; }
   main.book { padding: 0; gap: 0; }
   .leaf { box-shadow: none; padding: 0; max-width: none; background: #fff; break-after: page; }
   .leaf:last-child { break-after: auto; }
@@ -34,7 +34,23 @@
   }
   .plate-frame { overflow: visible; }
   .plate svg { min-width: 0; }
-  .settle { animation: none !important; }
+  /* On paper nothing is held back, pinned or turned: every leaf prints as it would read with scripts off. */
+  [data-reveal], [data-reveal] > *, .sidenote, .ltr, .ink, .rule-draw, .leader, .plate svg *, .plate figcaption {
+    opacity: 1 !important;
+    filter: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+  [data-reveal], [data-reveal] > *, .sidenote, .ltr, .rule-draw, .t-leaf { transform: none !important; }
+  .leader { transform: translateY(-.32em) !important; }
+  .record[data-reveal] { border-color: var(--ink) !important; background: none !important; }
+  .flourish { stroke-dashoffset: 0 !important; }
+  .timeline::after { transform: none !important; }
+  .plate svg * { stroke-dashoffset: 0 !important; }
+  .cover-stage::after, .sheet::after { content: none !important; }
+  .volume { position: static !important; }
+  .sheet { clip-path: none !important; box-shadow: none; padding: 0; gap: .8rem; background: #fff; break-after: page; }
+  .toc { gap: 1.1rem; }
 
   /* The Abridgement on a single sheet */
   .abridgement { font-size: 9pt; line-height: 1.27; }

@@ -15,6 +15,8 @@ const geometry: Record<Branch['key'], { from: Point; via: Point; to: Point; labe
   'mechanical-arts': { from: [340, 205], via: [440, 202], to: [560, 160], label: [556, 244] },
 };
 
+const leafKey = (branch: Branch['key'], i: number) => `${branch}-${i}`;
+
 const at = (g: { from: Point; via: Point; to: Point }, t: number): Point => {
   const u = 1 - t;
   return [
@@ -27,10 +29,13 @@ const tangent = (g: { from: Point; via: Point; to: Point }, t: number): Point =>
   2 * (1 - t) * (g.via[1] - g.from[1]) + 2 * t * (g.to[1] - g.via[1]),
 ];
 
+// Each leaf is drawn in its turn when the plate is first seen: roots and trunk, then the four
+// branches, then the leaves along them, then the names. `turn` is that order, published as --i.
+let turn = 8;
 const tree = profile.knowledge.map((branch) => {
   const g = geometry[branch.key];
   const n = branch.instruments.length;
-  const leaves = branch.instruments.map((_, i) => {
+  const leaves = branch.instruments.map((instrument, i) => {
     const t = 0.22 + 0.74 * (n === 1 ? 1 : i / (n - 1));
     const [x, y] = at(g, t);
     const [tx, ty] = tangent(g, t);
@@ -41,7 +46,14 @@ const tree = profile.knowledge.map((branch) => {
     const angle = (Math.atan2(ty, tx) * 180) / Math.PI + side * 38;
     const twigEnd: Point = [x + nx * 6, y + ny * 6];
     const leaf: Point = [x + nx * 11, y + ny * 11];
-    return { twig: `M${x.toFixed(1)},${y.toFixed(1)} L${twigEnd[0].toFixed(1)},${twigEnd[1].toFixed(1)}`, leaf, angle };
+    return {
+      key: leafKey(branch.key, i),
+      name: `${instrument.name} · ${branch.title}`,
+      twig: `M${x.toFixed(1)},${y.toFixed(1)} L${twigEnd[0].toFixed(1)},${twigEnd[1].toFixed(1)}`,
+      leaf,
+      angle,
+      turn: turn++,
+    };
   });
   return {
     ...branch,
@@ -50,6 +62,15 @@ const tree = profile.knowledge.map((branch) => {
     leaves,
   };
 });
+const lastTurn = turn;
+
+// The index beneath lists each branch alphabetically, but keeps each entry tied to its leaf.
+const branches = profile.knowledge.map((branch) => ({
+  ...branch,
+  entries: branch.instruments
+    .map((instrument, i) => ({ ...instrument, key: leafKey(branch.key, i) }))
+    .sort((a, b) => a.name.localeCompare(b.name)),
+}));
 
 const total = profile.knowledge.reduce((sum, b) => sum + b.instruments.length, 0);
 ---
@@ -61,7 +82,7 @@ const total = profile.knowledge.reduce((sum, b) => sum + b.instruments.length, 0
   <article class="leaf" aria-labelledby="knowledge-title">
     <RunningHead right="Book III · The Tree of Knowledge" />
     <div class="text">
-      <header class="opening">
+      <header class="opening" data-reveal="cascade">
         <p class="book-label">Book the Third</p>
         <h1 id="knowledge-title">The Tree of Knowledge</h1>
       </header>
@@ -75,33 +96,37 @@ const total = profile.knowledge.reduce((sum, b) => sum + b.instruments.length, 0
       <Plate number="I" caption={`The Tree of Knowledge, after the Encyclopédie of Diderot and d’Alembert. Each of its ${toWords(total)} leaves is an instrument.`}>
         <svg class="tree" viewBox="0 0 680 320" role="img" aria-labelledby="tree-title">
           <title id="tree-title">An engraved tree whose trunk divides into four branches, Memory, Reason, Imagination and the Mechanical Arts, each bearing one leaf for every instrument listed beneath.</title>
-          <path class="t-root" d="M240,300 H440"></path>
-          <path class="t-root" d="M332,298 C312,302 292,300 270,306 M348,298 C368,302 390,300 412,306 M340,298 C338,304 336,308 333,314"></path>
-          <path class="e-hatch" d="M330,300 C332,262 334,222 335,176 L345,176 C346,222 348,262 350,300 Z"></path>
-          {tree.map((b) => (
+          <path class="t-root" style="--i:0" d="M240,300 H440"></path>
+          <path class="t-root" style="--i:1" d="M332,298 C312,302 292,300 270,306 M348,298 C368,302 390,300 412,306 M340,298 C338,304 336,308 333,314"></path>
+          <path class="e-hatch" style="--i:2" d="M330,300 C332,262 334,222 335,176 L345,176 C346,222 348,262 350,300 Z"></path>
+          {tree.map((b, bi) => (
             <g>
-              <path class="t-branch" d={b.path}></path>
+              <path class="t-branch" style={`--i:${4 + bi}`} d={b.path}></path>
               {b.leaves.map((l) => (
-                <>
-                  <path class="t-twig" d={l.twig}></path>
-                  <ellipse class="t-leaf" cx={l.leaf[0].toFixed(1)} cy={l.leaf[1].toFixed(1)} rx="7" ry="2.7" transform={`rotate(${l.angle.toFixed(1)} ${l.leaf[0].toFixed(1)} ${l.leaf[1].toFixed(1)})`}></ellipse>
-                </>
+                <g data-leaf={l.key} data-name={l.name}>
+                  <path class="t-twig" style={`--i:${l.turn}`} d={l.twig}></path>
+                  <g transform={`rotate(${l.angle.toFixed(1)} ${l.leaf[0].toFixed(1)} ${l.leaf[1].toFixed(1)})`}>
+                    <ellipse class="t-leaf" style={`--i:${l.turn}`} cx={l.leaf[0].toFixed(1)} cy={l.leaf[1].toFixed(1)} rx="7" ry="2.7"></ellipse>
+                  </g>
+                  <circle class="t-leaf-hit" cx={l.leaf[0].toFixed(1)} cy={l.leaf[1].toFixed(1)} r="8"></circle>
+                </g>
               ))}
-              <text class="t-label" x={b.label[0]} y={b.label[1]} text-anchor="middle">{b.title}</text>
-              <text class="t-gloss" x={b.label[0]} y={b.label[1] + 16} text-anchor="middle">{b.gloss}</text>
+              <text class="t-label" style={`--i:${lastTurn + bi * 3}`} x={b.label[0]} y={b.label[1]} text-anchor="middle">{b.title}</text>
+              <text class="t-gloss" style={`--i:${lastTurn + bi * 3 + 1}`} x={b.label[0]} y={b.label[1] + 16} text-anchor="middle">{b.gloss}</text>
             </g>
           ))}
         </svg>
+        <p class="tree-caption" id="tree-caption" aria-hidden="true">Point at a leaf to read its name</p>
       </Plate>
 
       <div class="branches">
-        {profile.knowledge.map((branch) => (
-          <section class="branch" aria-labelledby={`branch-${branch.key}`}>
+        {branches.map((branch) => (
+          <section class="branch" aria-labelledby={`branch-${branch.key}`} data-reveal>
             <h2 id={`branch-${branch.key}`}>{branch.title}</h2>
             <p class="gloss">{branch.gloss}</p>
             <ul class="index-list">
-              {[...branch.instruments].sort((a, b) => a.name.localeCompare(b.name)).map((inst) => (
-                <li>
+              {branch.entries.map((inst) => (
+                <li data-leaf-entry={inst.key}>
                   <span class="name">{inst.name}</span>
                   {inst.refs.length > 0 && (
                     <span class="refs">{inst.refs.map((r, i) => <>{i > 0 && ', '}<a href={href(r.path)}>{r.label}</a></>)}</span>

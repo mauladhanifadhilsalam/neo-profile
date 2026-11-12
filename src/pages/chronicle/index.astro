@@ -14,17 +14,25 @@ const chapters = await getChronicle();
 >
   <section class="leaf" aria-labelledby="chronicle-title">
     <RunningHead right="Book I · The Chronicle" />
-    <div class="contents-head">
+    <div class="contents-head" data-reveal="cascade">
       <p class="book-label">Book the First</p>
       <h1 id="chronicle-title" class="book-title">The Chronicle</h1>
       <p>In which the author’s working life is set down in order, from a schoolboy’s internship in 2021 to the present volume.</p>
       <p class="fleuron" aria-hidden="true">❧</p>
     </div>
-    <ol class="toc">
+    <!-- One thread through the years: it is ruled in rubric as far as the reader has followed it. -->
+    <ol class="timeline" data-thread>
       {chapters.map((c) => (
-        <li>
-          <a class="toc-row" href={href(chapterPath(c))}><span class="toc-n">{toRoman(c.data.number)}.</span><span class="toc-t">{c.data.title}</span><span class="leader" aria-hidden="true"></span><span class="toc-r">{c.data.years}</span></a>
-          <p class="toc-gloss">{c.data.record.office}, {c.data.record.house.split(',')[0]}</p>
+        <li class="timeline-item" data-reveal>
+          <span class="timeline-node" aria-hidden="true"></span>
+          <p class="timeline-years"><span lang="la">{c.data.years}</span><span class="plain">{c.data.record.term}</span></p>
+          <h2 class="timeline-title"><a href={href(chapterPath(c))}><span class="toc-n">{toRoman(c.data.number)}.</span> {c.data.title}</a></h2>
+          <p class="timeline-office">{c.data.record.office}, {c.data.record.house.split(',')[0]}</p>
+          {c.data.record.instruments.length > 0 && (
+            <ul class="chips" aria-label="Instruments">
+              {c.data.record.instruments.map((name) => <li>{name}</li>)}
+            </ul>
+          )}
         </li>
       ))}
     </ol>
